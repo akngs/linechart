@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>linechart demo</title>
+    <style>
+    svg .axis line,
+    svg .axis path {
+      stroke-width: 0.5;
+      stroke: #666;
+      fill: none;
+    }
+    svg .axis text {
+      font-family: sans-serif;
+      font-size: 11px;
+      fill: #666;
+    }
+    </style>
+    <script src="dist/linechart.min.js"></script>
+    <script>
+    window.addEventListener('load', function() {
+      let svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      document.body.appendChild(svgEl);
+
+      let dateFormat = d3.time.format('%Y-%m-%d');
+      let convertLine = d => {
+        return {ts: dateFormat.parse(d.ts), value: +d.value};
+      };
+
+      let data = [
+        {
+          key: 'a', values: d3.csv.parse([
+            'ts,value',
+            '2012-01-15,30',
+            '2012-03-01,50',
+            '2012-05-01,40'
+          ].join('\n'), convertLine)
+        },
+        {
+          key: 'b', values: d3.csv.parse([
+            'ts,value',
+            '2012-02-01,20',
+            '2012-03-01,30',
+            '2012-04-01,60',
+            '2012-05-01,55'
+          ].join('\n'), convertLine)
+        }
+      ];
+
+      let chart = linechart.linechart()
+        .data(data)
+        .xAccessor(d => d.ts)
+        .yAccessor(d => d.value)
+        .xScaleType('time')
+        .xAxisTickFormat(d3.time.format('%m-%d'))
+        .width(400)
+        .height(150);
+      chart(svgEl);
+    });
+    </script>
+  </head>
+  <body>
+  </body>
+</html>
