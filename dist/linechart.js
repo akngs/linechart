@@ -61,27 +61,44 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.linechart = undefined;
 	
-	var _d = __webpack_require__(1);
+	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 	
-	var _d2 = _interopRequireDefault(_d);
+	var _d2 = __webpack_require__(1);
+	
+	var _d3 = _interopRequireDefault(_d2);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	var SCALE_TYPES = {
-	  'linear': _d2.default.scale.linear,
-	  'time': _d2.default.time.scale
+	  'linear': _d3.default.scale.linear,
+	  'time': _d3.default.time.scale
 	};
 	
 	var linechart = function linechart() {
 	  var instance = function instance(containerEl) {
 	    _init(containerEl);
-	    _render();
+	    _update();
 	  };
 	
 	  // Properties
 	  var data = [];
 	  instance.data = function (value) {
 	    return arguments.length ? (data = value, instance) : data;
+	  };
+	
+	  var pMarkers = [];
+	  instance.pMarkers = function (value) {
+	    return arguments.length ? (pMarkers = value, instance) : pMarkers;
+	  };
+	
+	  var xMarkers = [];
+	  instance.xMarkers = function (value) {
+	    return arguments.length ? (xMarkers = value, instance) : xMarkers;
+	  };
+	
+	  var yMarkers = [];
+	  instance.yMarkers = function (value) {
+	    return arguments.length ? (yMarkers = value, instance) : yMarkers;
 	  };
 	
 	  var xAccessor = function xAccessor(d, i) {
@@ -168,16 +185,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return arguments.length ? (showDataPoint = value, instance) : showDataPoint;
 	  };
 	
+	  // Event handlers
+	  var clickHandler = function clickHandler(x, y) {};
+	  instance.onClick = function (value) {
+	    return clickHandler = value, instance;
+	  };
+	
 	  // Private variables
 	  var _containerEl = void 0;
 	  var _rootSel = void 0;
 	  var _xAxisSel = void 0;
 	  var _yAxisSel = void 0;
 	  var _plotSel = void 0;
+	  var _pMarkersSel = void 0;
+	  var _xMarkersSel = void 0;
+	  var _yMarkersSel = void 0;
+	  var _overlaySel = void 0;
+	
+	  var _xScale = void 0;
+	  var _yScale = void 0;
 	
 	  var _init = function _init(containerEl) {
 	    _containerEl = containerEl;
-	    var sel = _d2.default.select(_containerEl);
+	    var sel = _d3.default.select(_containerEl);
 	
 	    // Create root group
 	    _rootSel = sel.selectAll('.root').data([null]);
@@ -192,20 +222,33 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    _plotSel = _rootSel.selectAll('.plot').data([null]);
 	    _plotSel.enter().append('g').attr('class', 'plot');
+	
+	    _pMarkersSel = _rootSel.selectAll('.markers-p').data([null]);
+	    _pMarkersSel.enter().append('g').attr('class', 'markers markers-p');
+	
+	    _xMarkersSel = _rootSel.selectAll('.markers-x').data([null]);
+	    _xMarkersSel.enter().append('g').attr('class', 'markers markers-x');
+	
+	    _yMarkersSel = _rootSel.selectAll('.markers-y').data([null]);
+	    _yMarkersSel.enter().append('g').attr('class', 'markers markers-y');
+	
+	    _overlaySel = _rootSel.selectAll('.overlay').data([null]);
+	    _overlaySel.enter().append('rect').attr('class', 'overlay').attr('fill', 'rgba(0, 0, 0, 0)').on('click', _onClick);
 	  };
 	
-	  var _render = function _render() {
-	    var xScale = new SCALE_TYPES[xScaleType]().domain(_getNestedExtent(data, xAccessor)).rangeRound([0, width - marginL - marginR - paddingL]);
-	    var yScale = new SCALE_TYPES[yScaleType]().domain(_getNestedExtent(data, yAccessor)).rangeRound([height - marginT - marginB - paddingB, 0]);
+	  var _update = function _update() {
+	    // Update scales
+	    _xScale = new SCALE_TYPES[xScaleType]().domain(_getExtent(data, xAccessor, xMarkers, pMarkers)).rangeRound([0, width - marginL - marginR - paddingL]);
+	    _yScale = new SCALE_TYPES[yScaleType]().domain(_getExtent(data, yAccessor, yMarkers, pMarkers)).rangeRound([height - marginT - marginB - paddingB, 0]);
 	
-	    var innerWidth = xScale.range()[1];
-	    var innerHeight = yScale.range()[0];
-	    var color = _d2.default.scale.category10();
+	    var innerWidth = _xScale.range()[1];
+	    var innerHeight = _yScale.range()[0];
+	    var color = _d3.default.scale.category10();
 	    var xScaledAccessor = function xScaledAccessor(d, i) {
-	      return xScale(xAccessor(d, i));
+	      return _xScale(xAccessor(d, i));
 	    };
 	    var yScaledAccessor = function yScaledAccessor(d, i) {
-	      return yScale(yAccessor(d, i));
+	      return _yScale(yAccessor(d, i));
 	    };
 	
 	    // Resize container element
@@ -214,14 +257,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _rootSel.attr('transform', 'translate(' + (marginL + paddingL) + ', ' + marginT + ')');
 	
 	    // Render axes
-	    var xAxis = _d2.default.svg.axis().scale(xScale).tickFormat(xAxisTickFormat).tickSize(2).ticks(5).orient('bottom');
-	    var yAxis = _d2.default.svg.axis().scale(yScale).tickFormat(yAxisTickFormat).tickSize(2).ticks(5).orient('left');
+	    var xAxis = _d3.default.svg.axis().scale(_xScale).tickFormat(xAxisTickFormat).tickSize(2).ticks(5).orient('bottom');
+	    var yAxis = _d3.default.svg.axis().scale(_yScale).tickFormat(yAxisTickFormat).tickSize(2).ticks(5).orient('left');
 	
 	    _xAxisSel.attr('transform', 'translate(0, ' + (innerHeight + paddingB) + ')').call(xAxis);
 	    _yAxisSel.attr('transform', 'translate(' + -paddingL + ', 0)').call(yAxis);
 	
 	    // Render data lines
-	    var line = _d2.default.svg.line().x(xScaledAccessor).y(yScaledAccessor);
+	    var line = _d3.default.svg.line().x(xScaledAccessor).y(yScaledAccessor);
 	
 	    var lineSel = _plotSel.selectAll('.line').data(showDataLine ? data : [], function (d) {
 	      return d.key;
@@ -257,9 +300,58 @@ return /******/ (function(modules) { // webpackBootstrap
 	    pointSel.attr('cx', xScaledAccessor).attr('cy', yScaledAccessor).attr('r', 2).attr('stroke', function (d, i, j) {
 	      return color(j);
 	    }).attr('stroke-width', 1).attr('fill', 'none');
+	
+	    // Render point markers
+	    var pMarkerSel = _pMarkersSel.selectAll('.marker').data(pMarkers);
+	
+	    pMarkerSel.enter().append('g').attr('class', 'marker').each(function () {
+	      var sel = _d3.default.select(this);
+	      sel.append('line').attr('y1', -8).attr('y2', 8).attr('stroke-width', 0.5);
+	      sel.append('line').attr('x1', -8).attr('x2', 8).attr('stroke-width', 0.5);
+	    });
+	
+	    pMarkerSel.exit().remove();
+	
+	    pMarkerSel.attr('transform', function (d) {
+	      return 'translate(' + xScaledAccessor(d) + ', ' + yScaledAccessor(d) + ')';
+	    });
+	
+	    // Render x markers
+	    _xMarkersSel.attr('transform', 'translate(' + -paddingL + ', 0)');
+	    var xMarkerSel = _xMarkersSel.selectAll('.marker').data(xMarkers);
+	
+	    xMarkerSel.enter().append('line').attr('class', 'marker').attr('stroke-width', 0.5);
+	
+	    xMarkerSel.exit().remove();
+	
+	    xMarkerSel.attr('x1', _xScale).attr('x2', _xScale).attr('y2', innerHeight + paddingB + 2);
+	
+	    // Render y markers
+	    _yMarkersSel.attr('transform', 'translate(' + -paddingL + ', 0)');
+	    var yMarkerSel = _yMarkersSel.selectAll('.marker').data(yMarkers);
+	
+	    yMarkerSel.enter().append('line').attr('class', 'marker').attr('stroke-width', 0.5);
+	
+	    yMarkerSel.exit().remove();
+	
+	    yMarkerSel.attr('y1', _yScale).attr('y2', _yScale).attr('x2', innerWidth + paddingL + 2);
+	
+	    // Resize overlay
+	    _overlaySel.attr('width', innerWidth).attr('height', innerHeight);
 	  };
 	
-	  var _getNestedExtent = function _getNestedExtent(data, accessor) {
+	  var _onClick = function _onClick() {
+	    var _mouseToDomain2 = _mouseToDomain(_d3.default.event.offsetX, _d3.default.event.offsetY);
+	
+	    var _mouseToDomain3 = _slicedToArray(_mouseToDomain2, 2);
+	
+	    var x = _mouseToDomain3[0];
+	    var y = _mouseToDomain3[1];
+	
+	    clickHandler(x, y);
+	  };
+	
+	  var _getExtent = function _getExtent(data, accessor, axisMarkers, pointMarkers) {
 	    if (data.length === 0) {
 	      return [0, 1];
 	    }
@@ -274,7 +366,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	        max = max > value ? max : value;
 	      }
 	    }
+	    for (var _i = 0; _i < axisMarkers.length; ++_i) {
+	      var _value = axisMarkers[_i];
+	      min = min < _value ? min : _value;
+	      max = max > _value ? max : _value;
+	    }
+	    for (var _i2 = 0; _i2 < pointMarkers.length; ++_i2) {
+	      var _value2 = accessor(pointMarkers[_i2]);
+	      min = min < _value2 ? min : _value2;
+	      max = max > _value2 ? max : _value2;
+	    }
+	
 	    return [min, max];
+	  };
+	
+	  var _mouseToDomain = function _mouseToDomain(x, y) {
+	    return [_xScale.invert(x - marginL - paddingL), _yScale.invert(y - marginT)];
 	  };
 	
 	  return instance;

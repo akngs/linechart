@@ -8,13 +8,28 @@ const SCALE_TYPES = {
 const linechart = () => {
   let instance = function(containerEl) {
     _init(containerEl);
-    _render();
+    _update();
   };
 
   // Properties
   let data = [];
   instance.data = function(value) {
     return arguments.length ? (data = value, instance) : data;
+  };
+
+  let pMarkers = [];
+  instance.pMarkers = function(value) {
+    return arguments.length ? (pMarkers = value, instance) : pMarkers;
+  };
+
+  let xMarkers = [];
+  instance.xMarkers = function(value) {
+    return arguments.length ? (xMarkers = value, instance) : xMarkers;
+  };
+
+  let yMarkers = [];
+  instance.yMarkers = function(value) {
+    return arguments.length ? (yMarkers = value, instance) : yMarkers;
   };
 
   let xAccessor = (d, i) => i;
@@ -97,12 +112,25 @@ const linechart = () => {
     return arguments.length ? (showDataPoint = value, instance) : showDataPoint;
   };
 
+  // Event handlers
+  let clickHandler = (x, y) => {};
+  instance.onClick = function(value) {
+    return (clickHandler = value, instance);
+  };
+
   // Private variables
   let _containerEl;
   let _rootSel;
   let _xAxisSel;
   let _yAxisSel;
   let _plotSel;
+  let _pMarkersSel;
+  let _xMarkersSel;
+  let _yMarkersSel;
+  let _overlaySel;
+
+  let _xScale;
+  let _yScale;
 
   const _init = (containerEl) => {
     _containerEl = containerEl;
@@ -121,21 +149,37 @@ const linechart = () => {
 
     _plotSel = _rootSel.selectAll('.plot').data([null]);
     _plotSel.enter().append('g').attr('class', 'plot');
+
+    _pMarkersSel = _rootSel.selectAll('.markers-p').data([null]);
+    _pMarkersSel.enter().append('g').attr('class', 'markers markers-p');
+
+    _xMarkersSel = _rootSel.selectAll('.markers-x').data([null]);
+    _xMarkersSel.enter().append('g').attr('class', 'markers markers-x');
+
+    _yMarkersSel = _rootSel.selectAll('.markers-y').data([null]);
+    _yMarkersSel.enter().append('g').attr('class', 'markers markers-y');
+
+    _overlaySel = _rootSel.selectAll('.overlay').data([null]);
+    _overlaySel.enter().append('rect')
+      .attr('class', 'overlay')
+      .attr('fill', 'rgba(0, 0, 0, 0)')
+      .on('click', _onClick);
   };
 
-  const _render = () => {
-    let xScale = new SCALE_TYPES[xScaleType]()
-      .domain(_getNestedExtent(data, xAccessor))
+  const _update = () => {
+    // Update scales
+    _xScale = new SCALE_TYPES[xScaleType]()
+      .domain(_getExtent(data, xAccessor, xMarkers, pMarkers))
       .rangeRound([0, width - marginL - marginR - paddingL]);
-    let yScale = new SCALE_TYPES[yScaleType]()
-      .domain(_getNestedExtent(data, yAccessor))
+    _yScale = new SCALE_TYPES[yScaleType]()
+      .domain(_getExtent(data, yAccessor, yMarkers, pMarkers))
       .rangeRound([height - marginT - marginB - paddingB, 0]);
 
-    let innerWidth = xScale.range()[1];
-    let innerHeight = yScale.range()[0];
+    let innerWidth = _xScale.range()[1];
+    let innerHeight = _yScale.range()[0];
     let color = d3.scale.category10();
-    let xScaledAccessor = (d, i) => xScale(xAccessor(d, i));
-    let yScaledAccessor = (d, i) => yScale(yAccessor(d, i));
+    let xScaledAccessor = (d, i) => _xScale(xAccessor(d, i));
+    let yScaledAccessor = (d, i) => _yScale(yAccessor(d, i));
 
     // Resize container element
     _containerEl.setAttribute('width', width);
@@ -146,13 +190,13 @@ const linechart = () => {
 
     // Render axes
     let xAxis = d3.svg.axis()
-      .scale(xScale)
+      .scale(_xScale)
       .tickFormat(xAxisTickFormat)
       .tickSize(2)
       .ticks(5)
       .orient('bottom');
     let yAxis = d3.svg.axis()
-      .scale(yScale)
+      .scale(_yScale)
       .tickFormat(yAxisTickFormat)
       .tickSize(2)
       .ticks(5)
@@ -209,9 +253,72 @@ const linechart = () => {
       .attr('stroke', (d, i, j) => color(j))
       .attr('stroke-width', 1)
       .attr('fill', 'none');
+
+    // Render point markers
+    let pMarkerSel = _pMarkersSel.selectAll('.marker').data(pMarkers);
+
+    pMarkerSel.enter().append('g')
+      .attr('class', 'marker')
+      .each(function() {
+        let sel = d3.select(this);
+        sel.append('line')
+          .attr('y1', -8)
+          .attr('y2', 8)
+          .attr('stroke-width', 0.5);
+        sel.append('line')
+          .attr('x1', -8)
+          .attr('x2', 8)
+          .attr('stroke-width', 0.5);
+      });
+
+    pMarkerSel.exit().remove();
+
+    pMarkerSel
+      .attr('transform', d => `translate(${xScaledAccessor(d)}, ${yScaledAccessor(d)})`);
+
+    // Render x markers
+    _xMarkersSel.attr('transform', `translate(${-paddingL}, 0)`);
+    let xMarkerSel = _xMarkersSel.selectAll('.marker').data(xMarkers);
+
+    xMarkerSel.enter().append('line')
+      .attr('class', 'marker')
+      .attr('stroke-width', 0.5);
+
+    xMarkerSel.exit().remove();
+
+    xMarkerSel
+      .attr('x1', _xScale)
+      .attr('x2', _xScale)
+      .attr('y2', innerHeight + paddingB + 2);
+
+    // Render y markers
+    _yMarkersSel.attr('transform', `translate(${-paddingL}, 0)`);
+    let yMarkerSel = _yMarkersSel.selectAll('.marker').data(yMarkers);
+
+    yMarkerSel.enter().append('line')
+      .attr('class', 'marker')
+      .attr('stroke-width', 0.5);
+
+    yMarkerSel.exit().remove();
+
+    yMarkerSel
+      .attr('y1', _yScale)
+      .attr('y2', _yScale)
+      .attr('x2', innerWidth + paddingL + 2);
+
+    // Resize overlay
+    _overlaySel
+      .attr('width', innerWidth)
+      .attr('height', innerHeight);
+
   };
 
-  const _getNestedExtent = (data, accessor) => {
+  const _onClick = () => {
+    let [x, y] = _mouseToDomain(d3.event.offsetX, d3.event.offsetY);
+    clickHandler(x, y);
+  };
+
+  const _getExtent = (data, accessor, axisMarkers, pointMarkers) => {
     if (data.length === 0) { return [0, 1]; }
 
     let min = +Infinity;
@@ -224,7 +331,25 @@ const linechart = () => {
         max = max > value ? max : value;
       }
     }
+    for (let i = 0; i < axisMarkers.length; ++i) {
+      let value = axisMarkers[i];
+      min = min < value ? min : value;
+      max = max > value ? max : value;
+    }
+    for (let i = 0; i < pointMarkers.length; ++i) {
+      let value = accessor(pointMarkers[i]);
+      min = min < value ? min : value;
+      max = max > value ? max : value;
+    }
+
     return [min, max];
+  };
+
+  const _mouseToDomain = (x, y) => {
+    return [
+      _xScale.invert(x - marginL - paddingL),
+      _yScale.invert(y - marginT)
+    ];
   };
 
   return instance;
