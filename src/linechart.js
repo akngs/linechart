@@ -17,6 +17,16 @@ const linechart = () => {
     return arguments.length ? (data = value, instance) : data;
   };
 
+  let xFocus = null;
+  instance.xFocus = function(value) {
+    return arguments.length ? (xFocus = value, instance) : xFocus;
+  };
+
+  let yFocus = null;
+  instance.yFocus = function(value) {
+    return arguments.length ? (yFocus = value, instance) : yFocus;
+  };
+
   let pMarkers = [];
   instance.pMarkers = function(value) {
     return arguments.length ? (pMarkers = value, instance) : pMarkers;
@@ -113,6 +123,21 @@ const linechart = () => {
   };
 
   // Event handlers
+  let mouseoverHandler = (x, y) => {};
+  instance.onMouseover = function(value) {
+    return (mouseoverHandler = value, instance);
+  };
+
+  let mouseoutHandler = () => {};
+  instance.onMouseout = function(value) {
+    return (mouseoutHandler = value, instance);
+  };
+
+  let mousemoveHandler = (x, y) => {};
+  instance.onMousemove = function(value) {
+    return (mousemoveHandler = value, instance);
+  };
+
   let clickHandler = (x, y) => {};
   instance.onClick = function(value) {
     return (clickHandler = value, instance);
@@ -127,6 +152,8 @@ const linechart = () => {
   let _pMarkersSel;
   let _xMarkersSel;
   let _yMarkersSel;
+  let _xFocusSel;
+  let _yFocusSel;
   let _overlaySel;
 
   let _xScale;
@@ -159,10 +186,19 @@ const linechart = () => {
     _yMarkersSel = _rootSel.selectAll('.markers-y').data([null]);
     _yMarkersSel.enter().append('g').attr('class', 'markers markers-y');
 
+    _xFocusSel = _rootSel.selectAll('.focus-x').data([null]);
+    _xFocusSel.enter().append('line').attr('class', 'focus focus-x');
+
+    _yFocusSel = _rootSel.selectAll('.focus-y').data([null]);
+    _yFocusSel.enter().append('line').attr('class', 'focus focus-y');
+
     _overlaySel = _rootSel.selectAll('.overlay').data([null]);
     _overlaySel.enter().append('rect')
       .attr('class', 'overlay')
       .attr('fill', 'rgba(0, 0, 0, 0)')
+      .on('mouseover', _onMouseover)
+      .on('mouseout', _onMouseout)
+      .on('mousemove', _onMousemove)
       .on('click', _onClick);
   };
 
@@ -276,6 +312,21 @@ const linechart = () => {
     pMarkerSel
       .attr('transform', d => `translate(${xScaledAccessor(d)}, ${yScaledAccessor(d)})`);
 
+    // Render x focus
+    _xFocusSel
+      .attr('stroke-width', xFocus === null ? 0 : 0.5)
+      .attr('y2', innerHeight + paddingB)
+      .attr('x1', _xScale(xFocus))
+      .attr('x2', _xScale(xFocus));
+
+    // Render y focus
+    _yFocusSel.attr('transform', `translate(${-paddingL}, 0)`);
+    _yFocusSel
+      .attr('stroke-width', yFocus === null ? 0 : 0.5)
+      .attr('x2', innerWidth + paddingL)
+      .attr('y1', _yScale(yFocus))
+      .attr('y2', _yScale(yFocus));
+
     // Render x markers
     _xMarkersSel.attr('transform', `translate(${-paddingL}, 0)`);
     let xMarkerSel = _xMarkersSel.selectAll('.marker').data(xMarkers);
@@ -289,7 +340,7 @@ const linechart = () => {
     xMarkerSel
       .attr('x1', _xScale)
       .attr('x2', _xScale)
-      .attr('y2', innerHeight + paddingB + 2);
+      .attr('y2', innerHeight + paddingB);
 
     // Render y markers
     _yMarkersSel.attr('transform', `translate(${-paddingL}, 0)`);
@@ -304,7 +355,7 @@ const linechart = () => {
     yMarkerSel
       .attr('y1', _yScale)
       .attr('y2', _yScale)
-      .attr('x2', innerWidth + paddingL + 2);
+      .attr('x2', innerWidth + paddingL);
 
     // Resize overlay
     _overlaySel
@@ -313,16 +364,34 @@ const linechart = () => {
 
   };
 
+  const _onMouseover = () => {
+    let [x, y] = _mouseToDomain(d3.event.offsetX, d3.event.offsetY);
+    mouseoverHandler(x, y);
+  };
+
+  const _onMouseout = () => {
+    mouseoutHandler();
+  };
+
+  const _onMousemove = () => {
+    let [x, y] = _mouseToDomain(d3.event.offsetX, d3.event.offsetY);
+    mousemoveHandler(x, y);
+  };
+
   const _onClick = () => {
     let [x, y] = _mouseToDomain(d3.event.offsetX, d3.event.offsetY);
     clickHandler(x, y);
   };
 
   const _getExtent = (data, accessor, axisMarkers, pointMarkers) => {
-    if (data.length === 0) { return [0, 1]; }
+    if (data.length + axisMarkers.length + pointMarkers.length === 0) {
+      return [0, 1];
+    }
 
     let min = +Infinity;
     let max = -Infinity;
+
+    // Calculate extent for data
     for (let i = 0; i < data.length; ++i) {
       let values = data[i].values;
       for (let j = 0; j < values.length; ++j) {
@@ -331,11 +400,15 @@ const linechart = () => {
         max = max > value ? max : value;
       }
     }
+
+    // Calculate extent for axis markers
     for (let i = 0; i < axisMarkers.length; ++i) {
       let value = axisMarkers[i];
       min = min < value ? min : value;
       max = max > value ? max : value;
     }
+
+    // Calculate extent for point markers
     for (let i = 0; i < pointMarkers.length; ++i) {
       let value = accessor(pointMarkers[i]);
       min = min < value ? min : value;
@@ -352,10 +425,12 @@ const linechart = () => {
     ];
   };
 
+  instance.update = _update;
+
   return instance;
 };
 
 export {
-  linechart,
+  linechart
 };
 

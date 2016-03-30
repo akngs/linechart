@@ -67,10 +67,22 @@ describe('Rendering', function() {
       .yMarkers([15, 40, 55])
       .pMarkers([
         {ts: new Date(2012, 0, 15), value: 30},
-        {ts: new Date(2012, 3, 3), value: 28}
+        {ts: new Date(2012, 3, 1), value: 28}
       ])
       .width(400)
       .height(150)
+      .onMousemove((x, y) => {
+        chart
+          .xFocus(x)
+          .yFocus(y)
+          .update();
+      })
+      .onMouseout(() => {
+        chart
+          .xFocus(null)
+          .yFocus(null)
+          .update();
+      })
       .onClick((x, y) => {console.log([x, y]);});
     chart(svgEl);
 

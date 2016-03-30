@@ -86,6 +86,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return arguments.length ? (data = value, instance) : data;
 	  };
 	
+	  var xFocus = null;
+	  instance.xFocus = function (value) {
+	    return arguments.length ? (xFocus = value, instance) : xFocus;
+	  };
+	
+	  var yFocus = null;
+	  instance.yFocus = function (value) {
+	    return arguments.length ? (yFocus = value, instance) : yFocus;
+	  };
+	
 	  var pMarkers = [];
 	  instance.pMarkers = function (value) {
 	    return arguments.length ? (pMarkers = value, instance) : pMarkers;
@@ -186,6 +196,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 	
 	  // Event handlers
+	  var mouseoverHandler = function mouseoverHandler(x, y) {};
+	  instance.onMouseover = function (value) {
+	    return mouseoverHandler = value, instance;
+	  };
+	
+	  var mouseoutHandler = function mouseoutHandler() {};
+	  instance.onMouseout = function (value) {
+	    return mouseoutHandler = value, instance;
+	  };
+	
+	  var mousemoveHandler = function mousemoveHandler(x, y) {};
+	  instance.onMousemove = function (value) {
+	    return mousemoveHandler = value, instance;
+	  };
+	
 	  var clickHandler = function clickHandler(x, y) {};
 	  instance.onClick = function (value) {
 	    return clickHandler = value, instance;
@@ -200,6 +225,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var _pMarkersSel = void 0;
 	  var _xMarkersSel = void 0;
 	  var _yMarkersSel = void 0;
+	  var _xFocusSel = void 0;
+	  var _yFocusSel = void 0;
 	  var _overlaySel = void 0;
 	
 	  var _xScale = void 0;
@@ -232,8 +259,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _yMarkersSel = _rootSel.selectAll('.markers-y').data([null]);
 	    _yMarkersSel.enter().append('g').attr('class', 'markers markers-y');
 	
+	    _xFocusSel = _rootSel.selectAll('.focus-x').data([null]);
+	    _xFocusSel.enter().append('line').attr('class', 'focus focus-x');
+	
+	    _yFocusSel = _rootSel.selectAll('.focus-y').data([null]);
+	    _yFocusSel.enter().append('line').attr('class', 'focus focus-y');
+	
 	    _overlaySel = _rootSel.selectAll('.overlay').data([null]);
-	    _overlaySel.enter().append('rect').attr('class', 'overlay').attr('fill', 'rgba(0, 0, 0, 0)').on('click', _onClick);
+	    _overlaySel.enter().append('rect').attr('class', 'overlay').attr('fill', 'rgba(0, 0, 0, 0)').on('mouseover', _onMouseover).on('mouseout', _onMouseout).on('mousemove', _onMousemove).on('click', _onClick);
 	  };
 	
 	  var _update = function _update() {
@@ -316,6 +349,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return 'translate(' + xScaledAccessor(d) + ', ' + yScaledAccessor(d) + ')';
 	    });
 	
+	    // Render x focus
+	    _xFocusSel.attr('stroke-width', xFocus === null ? 0 : 0.5).attr('y2', innerHeight + paddingB).attr('x1', _xScale(xFocus)).attr('x2', _xScale(xFocus));
+	
+	    // Render y focus
+	    _yFocusSel.attr('transform', 'translate(' + -paddingL + ', 0)');
+	    _yFocusSel.attr('stroke-width', yFocus === null ? 0 : 0.5).attr('x2', innerWidth + paddingL).attr('y1', _yScale(yFocus)).attr('y2', _yScale(yFocus));
+	
 	    // Render x markers
 	    _xMarkersSel.attr('transform', 'translate(' + -paddingL + ', 0)');
 	    var xMarkerSel = _xMarkersSel.selectAll('.marker').data(xMarkers);
@@ -324,7 +364,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    xMarkerSel.exit().remove();
 	
-	    xMarkerSel.attr('x1', _xScale).attr('x2', _xScale).attr('y2', innerHeight + paddingB + 2);
+	    xMarkerSel.attr('x1', _xScale).attr('x2', _xScale).attr('y2', innerHeight + paddingB);
 	
 	    // Render y markers
 	    _yMarkersSel.attr('transform', 'translate(' + -paddingL + ', 0)');
@@ -334,13 +374,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    yMarkerSel.exit().remove();
 	
-	    yMarkerSel.attr('y1', _yScale).attr('y2', _yScale).attr('x2', innerWidth + paddingL + 2);
+	    yMarkerSel.attr('y1', _yScale).attr('y2', _yScale).attr('x2', innerWidth + paddingL);
 	
 	    // Resize overlay
 	    _overlaySel.attr('width', innerWidth).attr('height', innerHeight);
 	  };
 	
-	  var _onClick = function _onClick() {
+	  var _onMouseover = function _onMouseover() {
 	    var _mouseToDomain2 = _mouseToDomain(_d3.default.event.offsetX, _d3.default.event.offsetY);
 	
 	    var _mouseToDomain3 = _slicedToArray(_mouseToDomain2, 2);
@@ -348,16 +388,44 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var x = _mouseToDomain3[0];
 	    var y = _mouseToDomain3[1];
 	
+	    mouseoverHandler(x, y);
+	  };
+	
+	  var _onMouseout = function _onMouseout() {
+	    mouseoutHandler();
+	  };
+	
+	  var _onMousemove = function _onMousemove() {
+	    var _mouseToDomain4 = _mouseToDomain(_d3.default.event.offsetX, _d3.default.event.offsetY);
+	
+	    var _mouseToDomain5 = _slicedToArray(_mouseToDomain4, 2);
+	
+	    var x = _mouseToDomain5[0];
+	    var y = _mouseToDomain5[1];
+	
+	    mousemoveHandler(x, y);
+	  };
+	
+	  var _onClick = function _onClick() {
+	    var _mouseToDomain6 = _mouseToDomain(_d3.default.event.offsetX, _d3.default.event.offsetY);
+	
+	    var _mouseToDomain7 = _slicedToArray(_mouseToDomain6, 2);
+	
+	    var x = _mouseToDomain7[0];
+	    var y = _mouseToDomain7[1];
+	
 	    clickHandler(x, y);
 	  };
 	
 	  var _getExtent = function _getExtent(data, accessor, axisMarkers, pointMarkers) {
-	    if (data.length === 0) {
+	    if (data.length + axisMarkers.length + pointMarkers.length === 0) {
 	      return [0, 1];
 	    }
 	
 	    var min = +Infinity;
 	    var max = -Infinity;
+	
+	    // Calculate extent for data
 	    for (var i = 0; i < data.length; ++i) {
 	      var values = data[i].values;
 	      for (var j = 0; j < values.length; ++j) {
@@ -366,11 +434,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	        max = max > value ? max : value;
 	      }
 	    }
+	
+	    // Calculate extent for axis markers
 	    for (var _i = 0; _i < axisMarkers.length; ++_i) {
 	      var _value = axisMarkers[_i];
 	      min = min < _value ? min : _value;
 	      max = max > _value ? max : _value;
 	    }
+	
+	    // Calculate extent for point markers
 	    for (var _i2 = 0; _i2 < pointMarkers.length; ++_i2) {
 	      var _value2 = accessor(pointMarkers[_i2]);
 	      min = min < _value2 ? min : _value2;
@@ -383,6 +455,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var _mouseToDomain = function _mouseToDomain(x, y) {
 	    return [_xScale.invert(x - marginL - paddingL), _yScale.invert(y - marginT)];
 	  };
+	
+	  instance.update = _update;
 	
 	  return instance;
 	};
