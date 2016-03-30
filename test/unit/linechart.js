@@ -34,31 +34,25 @@ describe('Rendering', function() {
 
     let dateFormat = d3.time.format('%Y-%m-%d');
     let convertLine = d => {
-      return {ts: dateFormat.parse(d.ts), value: +d.value};
+      return {key: d.key, ts: dateFormat.parse(d.ts), value: +d.value};
     };
 
-    let data = [
-      {
-        key: 'a', values: d3.csv.parse([
-          'ts,value',
-          '2012-01-15,30',
-          '2012-03-01,50',
-          '2012-05-01,40'
-        ].join('\n'), convertLine)
-      },
-      {
-        key: 'b', values: d3.csv.parse([
-          'ts,value',
-          '2012-02-01,20',
-          '2012-03-01,30',
-          '2012-04-01,60',
-          '2012-05-01,55'
-        ].join('\n'), convertLine)
-      }
-    ];
+    let data = d3.nest()
+      .key(d => d.key)
+      .entries(d3.csv.parse([
+        'key,ts,value',
+        'a,2012-01-15,30',
+        'a,2012-03-01,50',
+        'a,2012-05-01,40',
+        'b,2012-02-01,20',
+        'b,2012-03-01,30',
+        'b,2012-04-01,60',
+        'b,2012-05-01,55'
+      ].join('\n'), convertLine));
 
     let chart = linechart()
       .data(data)
+      .interpolate('monotone')
       .xAccessor(d => d.ts)
       .yAccessor(d => d.value)
       .xScaleType('time')

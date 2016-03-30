@@ -11,116 +11,43 @@ const linechart = () => {
     _update();
   };
 
-  // Properties
-  let data = [];
-  instance.data = function(value) {
-    return arguments.length ? (data = value, instance) : data;
+  let props = {
+    // Data
+    data: [],
+    xFocus: null,
+    yFocus: null,
+    pMarkers: [],
+    xMarkers: [],
+    yMarkers: [],
+    xAccessor: (d, i) => i,
+    yAccessor: (d, i) => d,
+    xScaleType: 'linear',
+    yScaleType: 'linear',
+    interpolate: 'linear',
+
+    // Style
+    xAxisTickFormat: null,
+    yAxisTickFormat: null,
+    xAxisTickInside: false,
+    yAxisTickInside: false,
+    width: 300,
+    height: 150,
+    marginL: 24,
+    marginR: 18,
+    marginT: 12,
+    marginB: 18,
+    paddingL: 8,
+    paddingB: 8,
+    showDataLine: true,
+    showDataPoint: true
   };
 
-  let xFocus = null;
-  instance.xFocus = function(value) {
-    return arguments.length ? (xFocus = value, instance) : xFocus;
-  };
-
-  let yFocus = null;
-  instance.yFocus = function(value) {
-    return arguments.length ? (yFocus = value, instance) : yFocus;
-  };
-
-  let pMarkers = [];
-  instance.pMarkers = function(value) {
-    return arguments.length ? (pMarkers = value, instance) : pMarkers;
-  };
-
-  let xMarkers = [];
-  instance.xMarkers = function(value) {
-    return arguments.length ? (xMarkers = value, instance) : xMarkers;
-  };
-
-  let yMarkers = [];
-  instance.yMarkers = function(value) {
-    return arguments.length ? (yMarkers = value, instance) : yMarkers;
-  };
-
-  let xAccessor = (d, i) => i;
-  instance.xAccessor = function(value) {
-    return arguments.length ? (xAccessor = value, instance) : xAccessor;
-  };
-
-  let yAccessor = (d, i) => d;
-  instance.yAccessor = function(value) {
-    return arguments.length ? (yAccessor = value, instance) : yAccessor;
-  };
-
-  let xScaleType = 'linear';
-  instance.xScaleType = function(value) {
-    return arguments.length ? (xScaleType = value, instance) : xScaleType;
-  };
-
-  let yScaleType = 'linear';
-  instance.yScaleType = function(value) {
-    return arguments.length ? (yScaleType = value, instance) : yScaleType;
-  };
-
-  let yAxisTickFormat = null;
-  instance.yAxisTickFormat = function(value) {
-    return arguments.length ? (yAxisTickFormat = value, instance) : yAxisTickFormat;
-  };
-
-  let xAxisTickFormat = null;
-  instance.xAxisTickFormat = function(value) {
-    return arguments.length ? (xAxisTickFormat = value, instance) : xAxisTickFormat;
-  };
-
-  let width = 300;
-  instance.width = function(value) {
-    return arguments.length ? (width = value, instance) : width;
-  };
-
-  let height = 150;
-  instance.height = function(value) {
-    return arguments.length ? (height = value, instance) : height;
-  };
-
-  let marginL = 24;
-  instance.marginL = function(value) {
-    return arguments.length ? (marginL = value, instance) : marginL;
-  };
-
-  let marginR = 18;
-  instance.marginR = function(value) {
-    return arguments.length ? (marginR = value, instance) : marginR;
-  };
-
-  let marginT = 12;
-  instance.marginT = function(value) {
-    return arguments.length ? (marginT = value, instance) : marginT;
-  };
-
-  let marginB = 18;
-  instance.marginB = function(value) {
-    return arguments.length ? (marginB = value, instance) : marginB;
-  };
-
-  let paddingL = 8;
-  instance.paddingL = function(value) {
-    return arguments.length ? (paddingL = value, instance) : paddingL;
-  };
-
-  let paddingB = 8;
-  instance.paddingB = function(value) {
-    return arguments.length ? (paddingB = value, instance) : paddingB;
-  };
-
-  let showDataLine = true;
-  instance.showDataLine = function(value) {
-    return arguments.length ? (showDataLine = value, instance) : showDataLine;
-  };
-
-  let showDataPoint = true;
-  instance.showDataPoint = function(value) {
-    return arguments.length ? (showDataPoint = value, instance) : showDataPoint;
-  };
+  // Generate property accessors
+  for (let key in props) {
+    instance[key] = function(value) {
+      return arguments.length ? (props[key] = value, instance) : props[key];
+    };
+  }
 
   // Event handlers
   let mouseoverHandler = (x, y) => {};
@@ -204,55 +131,56 @@ const linechart = () => {
 
   const _update = () => {
     // Update scales
-    _xScale = new SCALE_TYPES[xScaleType]()
-      .domain(_getExtent(data, xAccessor, xMarkers, pMarkers))
-      .rangeRound([0, width - marginL - marginR - paddingL]);
-    _yScale = new SCALE_TYPES[yScaleType]()
-      .domain(_getExtent(data, yAccessor, yMarkers, pMarkers))
-      .rangeRound([height - marginT - marginB - paddingB, 0]);
+    _xScale = new SCALE_TYPES[props.xScaleType]()
+      .domain(_getExtent(props.data, props.xAccessor, props.xMarkers, props.pMarkers))
+      .rangeRound([0, props.width - props.marginL - props.marginR - props.paddingL]);
+    _yScale = new SCALE_TYPES[props.yScaleType]()
+      .domain(_getExtent(props.data, props.yAccessor, props.yMarkers, props.pMarkers))
+      .rangeRound([props.height - props.marginT - props.marginB - props.paddingB, 0]);
 
     let innerWidth = _xScale.range()[1];
     let innerHeight = _yScale.range()[0];
     let color = d3.scale.category10();
-    let xScaledAccessor = (d, i) => _xScale(xAccessor(d, i));
-    let yScaledAccessor = (d, i) => _yScale(yAccessor(d, i));
+    let xScaledAccessor = (d, i) => _xScale(props.xAccessor(d, i));
+    let yScaledAccessor = (d, i) => _yScale(props.yAccessor(d, i));
 
     // Resize container element
-    _containerEl.setAttribute('width', width);
-    _containerEl.setAttribute('height', height);
+    _containerEl.setAttribute('width', props.width);
+    _containerEl.setAttribute('height', props.height);
     _rootSel.attr(
         'transform',
-        `translate(${marginL + paddingL}, ${marginT})`);
+        `translate(${props.marginL + props.paddingL}, ${props.marginT})`);
 
     // Render axes
     let xAxis = d3.svg.axis()
       .scale(_xScale)
-      .tickFormat(xAxisTickFormat)
-      .tickSize(2)
+      .tickFormat(props.xAxisTickFormat)
+      .tickSize(props.xAxisTickInside ? -innerHeight - props.paddingB : 2)
       .ticks(5)
       .orient('bottom');
     let yAxis = d3.svg.axis()
       .scale(_yScale)
-      .tickFormat(yAxisTickFormat)
-      .tickSize(2)
+      .tickFormat(props.yAxisTickFormat)
+      .tickSize(props.yAxisTickInside ? -innerWidth - props.paddingL : 2)
       .ticks(5)
       .orient('left');
 
     _xAxisSel
-      .attr('transform', `translate(0, ${innerHeight + paddingB})`)
+      .attr('transform', `translate(0, ${innerHeight + props.paddingB})`)
       .call(xAxis);
     _yAxisSel
-      .attr('transform', `translate(${-paddingL}, 0)`)
+      .attr('transform', `translate(${-props.paddingL}, 0)`)
       .call(yAxis);
 
     // Render data lines
     let line = d3.svg.line()
       .x(xScaledAccessor)
-      .y(yScaledAccessor);
+      .y(yScaledAccessor)
+      .interpolate(props.interpolate);
 
     let lineSel = _plotSel
       .selectAll('.line')
-      .data(showDataLine ? data : [], d => d.key);
+      .data(props.showDataLine ? props.data : [], d => d.key);
 
     lineSel.enter().append('path')
       .attr('class', 'line')
@@ -268,7 +196,7 @@ const linechart = () => {
     // Render data points
     let pointsSel = _plotSel
       .selectAll('.points')
-      .data(showDataPoint ? data : [], d => d.key);
+      .data(props.showDataPoint ? props.data : [], d => d.key);
 
     pointsSel.enter().append('g')
       .attr('class', 'points');
@@ -291,7 +219,7 @@ const linechart = () => {
       .attr('fill', 'none');
 
     // Render point markers
-    let pMarkerSel = _pMarkersSel.selectAll('.marker').data(pMarkers);
+    let pMarkerSel = _pMarkersSel.selectAll('.marker').data(props.pMarkers);
 
     pMarkerSel.enter().append('g')
       .attr('class', 'marker')
@@ -314,22 +242,22 @@ const linechart = () => {
 
     // Render x focus
     _xFocusSel
-      .attr('stroke-width', xFocus === null ? 0 : 0.5)
-      .attr('y2', innerHeight + paddingB)
-      .attr('x1', _xScale(xFocus))
-      .attr('x2', _xScale(xFocus));
+      .attr('stroke-width', props.xFocus === null ? 0 : 0.5)
+      .attr('y2', innerHeight + props.paddingB)
+      .attr('x1', _xScale(props.xFocus))
+      .attr('x2', _xScale(props.xFocus));
 
     // Render y focus
-    _yFocusSel.attr('transform', `translate(${-paddingL}, 0)`);
+    _yFocusSel.attr('transform', `translate(${-props.paddingL}, 0)`);
     _yFocusSel
-      .attr('stroke-width', yFocus === null ? 0 : 0.5)
-      .attr('x2', innerWidth + paddingL)
-      .attr('y1', _yScale(yFocus))
-      .attr('y2', _yScale(yFocus));
+      .attr('stroke-width', props.yFocus === null ? 0 : 0.5)
+      .attr('x2', innerWidth + props.paddingL)
+      .attr('y1', _yScale(props.yFocus))
+      .attr('y2', _yScale(props.yFocus));
 
     // Render x markers
-    _xMarkersSel.attr('transform', `translate(${-paddingL}, 0)`);
-    let xMarkerSel = _xMarkersSel.selectAll('.marker').data(xMarkers);
+    _xMarkersSel.attr('transform', `translate(${-props.paddingL}, 0)`);
+    let xMarkerSel = _xMarkersSel.selectAll('.marker').data(props.xMarkers);
 
     xMarkerSel.enter().append('line')
       .attr('class', 'marker')
@@ -340,11 +268,11 @@ const linechart = () => {
     xMarkerSel
       .attr('x1', _xScale)
       .attr('x2', _xScale)
-      .attr('y2', innerHeight + paddingB);
+      .attr('y2', innerHeight + props.paddingB);
 
     // Render y markers
-    _yMarkersSel.attr('transform', `translate(${-paddingL}, 0)`);
-    let yMarkerSel = _yMarkersSel.selectAll('.marker').data(yMarkers);
+    _yMarkersSel.attr('transform', `translate(${-props.paddingL}, 0)`);
+    let yMarkerSel = _yMarkersSel.selectAll('.marker').data(props.yMarkers);
 
     yMarkerSel.enter().append('line')
       .attr('class', 'marker')
@@ -355,13 +283,12 @@ const linechart = () => {
     yMarkerSel
       .attr('y1', _yScale)
       .attr('y2', _yScale)
-      .attr('x2', innerWidth + paddingL);
+      .attr('x2', innerWidth + props.paddingL);
 
     // Resize overlay
     _overlaySel
       .attr('width', innerWidth)
       .attr('height', innerHeight);
-
   };
 
   const _onMouseover = () => {
@@ -420,8 +347,8 @@ const linechart = () => {
 
   const _mouseToDomain = (x, y) => {
     return [
-      _xScale.invert(x - marginL - paddingL),
-      _yScale.invert(y - marginT)
+      _xScale.invert(x - props.marginL - props.paddingL),
+      _yScale.invert(y - props.marginT)
     ];
   };
 
