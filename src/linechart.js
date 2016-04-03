@@ -397,7 +397,7 @@ const linechart = () => {
     for (let i = 0; i < data.length; ++i) {
       let values = data[i].values;
       for (let j = 0; j < values.length; ++j) {
-        let value = accessor(values[j]);
+        let value = accessor(values[j], j);
         min = min < value ? min : value;
         max = max > value ? max : value;
       }
@@ -408,8 +408,8 @@ const linechart = () => {
       for (let i = 0; i < data.length; ++i) {
         let values = data[i].values;
         for (let j = 0; j < values.length; ++j) {
-          let value0 = v0AreaAccessor(values[j]);
-          let value1 = v1AreaAccessor(values[j]);
+          let value0 = v0AreaAccessor(values[j], j);
+          let value1 = v1AreaAccessor(values[j], j);
           let minValue = Math.min(value0, value1);
           let maxValue = Math.max(value0, value1);
 
@@ -428,7 +428,7 @@ const linechart = () => {
 
     // Calculate extent for point markers
     for (let i = 0; i < pointMarkers.length; ++i) {
-      let value = accessor(pointMarkers[i]);
+      let value = accessor(pointMarkers[i], i);
       min = min < value ? min : value;
       max = max > value ? max : value;
     }

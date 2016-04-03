@@ -405,7 +405,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    for (var i = 0; i < data.length; ++i) {
 	      var values = data[i].values;
 	      for (var j = 0; j < values.length; ++j) {
-	        var value = accessor(values[j]);
+	        var value = accessor(values[j], j);
 	        min = min < value ? min : value;
 	        max = max > value ? max : value;
 	      }
@@ -416,8 +416,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      for (var _i = 0; _i < data.length; ++_i) {
 	        var _values = data[_i].values;
 	        for (var _j = 0; _j < _values.length; ++_j) {
-	          var value0 = v0AreaAccessor(_values[_j]);
-	          var value1 = v1AreaAccessor(_values[_j]);
+	          var value0 = v0AreaAccessor(_values[_j], _j);
+	          var value1 = v1AreaAccessor(_values[_j], _j);
 	          var minValue = Math.min(value0, value1);
 	          var maxValue = Math.max(value0, value1);
 	
@@ -436,7 +436,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    // Calculate extent for point markers
 	    for (var _i3 = 0; _i3 < pointMarkers.length; ++_i3) {
-	      var _value2 = accessor(pointMarkers[_i3]);
+	      var _value2 = accessor(pointMarkers[_i3], _i3);
 	      min = min < _value2 ? min : _value2;
 	      max = max > _value2 ? max : _value2;
 	    }
