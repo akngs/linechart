@@ -181,30 +181,22 @@ const linechart = () => {
     let xAxis = d3.svg.axis()
       .scale(_xScale)
       .tickFormat(props.xAxisTickFormat)
-      .tickSize(props.xAxisTickInside ? -innerHeight - props.paddingB : 4)
+      .tickSize(props.xAxisTickInside ? -innerHeight - props.paddingB : 2)
       .ticks(5)
       .orient('bottom');
     let yAxis = d3.svg.axis()
       .scale(_yScale)
       .tickFormat(props.yAxisTickFormat)
-      .tickSize(props.yAxisTickInside ? -innerWidth - props.paddingL : 4)
+      .tickSize(props.yAxisTickInside ? -innerWidth - props.paddingL : 2)
       .ticks(5)
       .orient('left');
 
     _xAxisSel
       .attr('transform', `translate(0, ${innerHeight + props.paddingB})`)
-      .call(xAxis)
-      .selectAll('text')
-        .attr('transform', 'translate(-1, -2)')
-        .style('text-anchor', 'end')
-        .style('alignment-baseline', 'after-edge');
+      .call(xAxis);
     _yAxisSel
       .attr('transform', `translate(${-props.paddingL}, 0)`)
-      .call(yAxis)
-      .selectAll('text')
-        .attr('transform', 'translate(6, 0)')
-        .style('text-anchor', 'end')
-        .style('alignment-baseline', 'hanging');
+      .call(yAxis);
 
     // Render axis labels
     _xAxisLabelSel
@@ -311,7 +303,7 @@ const linechart = () => {
     pMarkerSel.exit().remove();
 
     pMarkerSel
-      .attr('transform', d => `translate(${xScaledAccessor(d)}, ${yScaledAccessor(d)})`);
+      .attr('transform', (d, i) => `translate(${xScaledAccessor(d, i)}, ${yScaledAccessor(d, i)})`);
 
     // Render x focus
     _xFocusSel

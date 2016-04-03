@@ -17,9 +17,10 @@ describe('Basics', function() {
 });
 
 describe('Rendering', function() {
-  it('should generate components', function() {
-    // TODO: Use jsdom or something
-    let isBrowser = (() => {
+  let isBrowser = false;
+
+  beforeEach(function() {
+    isBrowser = (() => {
       try {
         window;
         return true;
@@ -27,6 +28,25 @@ describe('Rendering', function() {
         return false;
       }
     })();
+  });
+
+  it('should work with indexed x-axis', function() {
+    if (!isBrowser) { return; }
+
+    let svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    document.body.appendChild(svgEl);
+
+    let data = [
+      {key: 'A', values: [1, 3, 2, 4]},
+      {key: 'B', values: [5, 4, 3, 1]}
+    ];
+    let chart = linechart()
+      .data(data)
+      .interpolate('monotone');
+    chart(svgEl);
+  });
+
+  it('should generate components', function() {
     if (!isBrowser) { return; }
 
     let svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
