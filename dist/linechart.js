@@ -94,6 +94,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    yAccessor: function yAccessor(d, i) {
 	      return d;
 	    },
+	    y0AreaAccessor: null,
+	    y1AreaAccessor: null,
 	    xScaleType: 'linear',
 	    yScaleType: 'linear',
 	    interpolate: 'linear',
@@ -203,8 +205,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  var _update = function _update() {
 	    // Update scales
-	    _xScale = new SCALE_TYPES[props.xScaleType]().domain(_getExtent(props.data, props.xAccessor, props.xMarkers, props.pMarkers)).rangeRound([0, props.width - props.marginL - props.marginR - props.paddingL]);
-	    _yScale = new SCALE_TYPES[props.yScaleType]().domain(_getExtent(props.data, props.yAccessor, props.yMarkers, props.pMarkers)).rangeRound([props.height - props.marginT - props.marginB - props.paddingB, 0]);
+	    _xScale = new SCALE_TYPES[props.xScaleType]().domain(_getExtent(props.data, props.xAccessor, null, null, props.xMarkers, props.pMarkers)).rangeRound([0, props.width - props.marginL - props.marginR - props.paddingL]);
+	    _yScale = new SCALE_TYPES[props.yScaleType]().domain(_getExtent(props.data, props.yAccessor, props.y0AreaAccessor, props.y1AreaAccessor, props.yMarkers, props.pMarkers)).rangeRound([props.height - props.marginT - props.marginB - props.paddingB, 0]);
 	
 	    var innerWidth = _xScale.range()[1];
 	    var innerHeight = _yScale.range()[0];
@@ -227,6 +229,33 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    _xAxisSel.attr('transform', 'translate(0, ' + (innerHeight + props.paddingB) + ')').call(xAxis);
 	    _yAxisSel.attr('transform', 'translate(' + -props.paddingL + ', 0)').call(yAxis);
+	
+	    // Render data area
+	    if (props.y0AreaAccessor && props.y1AreaAccessor) {
+	      (function () {
+	        var y0ScaledAccessor = function y0ScaledAccessor(d, i) {
+	          return _yScale(props.y0AreaAccessor(d, i));
+	        };
+	        var y1ScaledAccessor = function y1ScaledAccessor(d, i) {
+	          return _yScale(props.y1AreaAccessor(d, i));
+	        };
+	        var area = _d3.default.svg.area().x(xScaledAccessor).y0(y0ScaledAccessor).y1(y1ScaledAccessor).interpolate(props.interpolate);
+	
+	        var areaSel = _plotSel.selectAll('.area').data(props.data, function (d) {
+	          return d.key;
+	        });
+	
+	        areaSel.enter().append('path').attr('class', 'area').attr('opacity', 0.1).attr('stroke', 'none');
+	
+	        areaSel.exit().remove();
+	
+	        areaSel.attr('fill', function (d, i) {
+	          return color(i);
+	        }).attr('d', function (d) {
+	          return area(d.values);
+	        });
+	      })();
+	    }
 	
 	    // Render data lines
 	    var line = _d3.default.svg.line().x(xScaledAccessor).y(yScaledAccessor).interpolate(props.interpolate);
@@ -349,7 +378,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    clickHandler(x, y);
 	  };
 	
-	  var _getExtent = function _getExtent(data, accessor, axisMarkers, pointMarkers) {
+	  var _getExtent = function _getExtent(data, accessor, v0AreaAccessor, v1AreaAccessor, axisMarkers, pointMarkers) {
 	    if (data.length + axisMarkers.length + pointMarkers.length === 0) {
 	      return [0, 1];
 	    }
@@ -367,16 +396,32 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	
+	    // Calculate extent for area data
+	    if (v0AreaAccessor && v1AreaAccessor) {
+	      for (var _i = 0; _i < data.length; ++_i) {
+	        var _values = data[_i].values;
+	        for (var _j = 0; _j < _values.length; ++_j) {
+	          var value0 = v0AreaAccessor(_values[_j]);
+	          var value1 = v1AreaAccessor(_values[_j]);
+	          var minValue = Math.min(value0, value1);
+	          var maxValue = Math.max(value0, value1);
+	
+	          min = min < minValue ? min : minValue;
+	          max = max > maxValue ? max : maxValue;
+	        }
+	      }
+	    }
+	
 	    // Calculate extent for axis markers
-	    for (var _i = 0; _i < axisMarkers.length; ++_i) {
-	      var _value = axisMarkers[_i];
+	    for (var _i2 = 0; _i2 < axisMarkers.length; ++_i2) {
+	      var _value = axisMarkers[_i2];
 	      min = min < _value ? min : _value;
 	      max = max > _value ? max : _value;
 	    }
 	
 	    // Calculate extent for point markers
-	    for (var _i2 = 0; _i2 < pointMarkers.length; ++_i2) {
-	      var _value2 = accessor(pointMarkers[_i2]);
+	    for (var _i3 = 0; _i3 < pointMarkers.length; ++_i3) {
+	      var _value2 = accessor(pointMarkers[_i3]);
 	      min = min < _value2 ? min : _value2;
 	      max = max > _value2 ? max : _value2;
 	    }

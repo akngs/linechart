@@ -34,20 +34,20 @@ describe('Rendering', function() {
 
     let dateFormat = d3.time.format('%Y-%m-%d');
     let convertLine = d => {
-      return {key: d.key, ts: dateFormat.parse(d.ts), value: +d.value};
+      return {key: d.key, ts: dateFormat.parse(d.ts), value: +d.value, interval: +d.interval};
     };
 
     let data = d3.nest()
       .key(d => d.key)
       .entries(d3.csv.parse([
-        'key,ts,value',
-        'a,2012-01-15,30',
-        'a,2012-03-01,50',
-        'a,2012-05-01,40',
-        'b,2012-02-01,20',
-        'b,2012-03-01,30',
-        'b,2012-04-01,60',
-        'b,2012-05-01,55'
+        'key,ts,value,interval',
+        'a,2012-01-15,30,2',
+        'a,2012-03-01,50,3',
+        'a,2012-05-01,40,4',
+        'b,2012-02-01,20,3',
+        'b,2012-03-01,30,3',
+        'b,2012-04-01,60,2',
+        'b,2012-05-01,55,1'
       ].join('\n'), convertLine));
 
     let chart = linechart()
@@ -55,10 +55,12 @@ describe('Rendering', function() {
       .interpolate('monotone')
       .xAccessor(d => d.ts)
       .yAccessor(d => d.value)
+      .y0AreaAccessor(d => d.value - d.interval)
+      .y1AreaAccessor(d => d.value + d.interval)
       .xScaleType('time')
       .xAxisTickFormat(d3.time.format('%m-%d'))
       .xMarkers([new Date(2012, 1, 15), new Date(2012, 2, 15)])
-      .yMarkers([15, 40, 55])
+      .yMarkers([40, 43])
       .pMarkers([
         {ts: new Date(2012, 0, 15), value: 30},
         {ts: new Date(2012, 3, 1), value: 28}

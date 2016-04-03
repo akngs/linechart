@@ -21,6 +21,8 @@ const linechart = () => {
     yMarkers: [],
     xAccessor: (d, i) => i,
     yAccessor: (d, i) => d,
+    y0AreaAccessor: null,
+    y1AreaAccessor: null,
     xScaleType: 'linear',
     yScaleType: 'linear',
     interpolate: 'linear',
@@ -132,10 +134,24 @@ const linechart = () => {
   const _update = () => {
     // Update scales
     _xScale = new SCALE_TYPES[props.xScaleType]()
-      .domain(_getExtent(props.data, props.xAccessor, props.xMarkers, props.pMarkers))
+      .domain(_getExtent(
+        props.data,
+        props.xAccessor,
+        null,
+        null,
+        props.xMarkers,
+        props.pMarkers
+      ))
       .rangeRound([0, props.width - props.marginL - props.marginR - props.paddingL]);
     _yScale = new SCALE_TYPES[props.yScaleType]()
-      .domain(_getExtent(props.data, props.yAccessor, props.yMarkers, props.pMarkers))
+      .domain(_getExtent(
+        props.data,
+        props.yAccessor,
+        props.y0AreaAccessor,
+        props.y1AreaAccessor,
+        props.yMarkers,
+        props.pMarkers
+      ))
       .rangeRound([props.height - props.marginT - props.marginB - props.paddingB, 0]);
 
     let innerWidth = _xScale.range()[1];
@@ -171,6 +187,32 @@ const linechart = () => {
     _yAxisSel
       .attr('transform', `translate(${-props.paddingL}, 0)`)
       .call(yAxis);
+
+    // Render data area
+    if (props.y0AreaAccessor && props.y1AreaAccessor) {
+      let y0ScaledAccessor = (d, i) => _yScale(props.y0AreaAccessor(d, i));
+      let y1ScaledAccessor = (d, i) => _yScale(props.y1AreaAccessor(d, i));
+      let area = d3.svg.area()
+        .x(xScaledAccessor)
+        .y0(y0ScaledAccessor)
+        .y1(y1ScaledAccessor)
+        .interpolate(props.interpolate);
+
+      let areaSel = _plotSel
+        .selectAll('.area')
+        .data(props.data, d => d.key);
+
+      areaSel.enter().append('path')
+        .attr('class', 'area')
+        .attr('opacity', 0.1)
+        .attr('stroke', 'none');
+
+      areaSel.exit().remove();
+
+      areaSel
+        .attr('fill', (d, i) => color(i))
+        .attr('d', d => area(d.values));
+    }
 
     // Render data lines
     let line = d3.svg.line()
@@ -310,7 +352,9 @@ const linechart = () => {
     clickHandler(x, y);
   };
 
-  const _getExtent = (data, accessor, axisMarkers, pointMarkers) => {
+  const _getExtent = (
+    data, accessor, v0AreaAccessor, v1AreaAccessor, axisMarkers, pointMarkers
+  ) => {
     if (data.length + axisMarkers.length + pointMarkers.length === 0) {
       return [0, 1];
     }
@@ -325,6 +369,22 @@ const linechart = () => {
         let value = accessor(values[j]);
         min = min < value ? min : value;
         max = max > value ? max : value;
+      }
+    }
+
+    // Calculate extent for area data
+    if (v0AreaAccessor && v1AreaAccessor) {
+      for (let i = 0; i < data.length; ++i) {
+        let values = data[i].values;
+        for (let j = 0; j < values.length; ++j) {
+          let value0 = v0AreaAccessor(values[j]);
+          let value1 = v1AreaAccessor(values[j]);
+          let minValue = Math.min(value0, value1);
+          let maxValue = Math.max(value0, value1);
+
+          min = min < minValue ? min : minValue;
+          max = max > maxValue ? max : maxValue;
+        }
       }
     }
 
