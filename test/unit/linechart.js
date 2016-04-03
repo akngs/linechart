@@ -44,10 +44,10 @@ describe('Rendering', function() {
         'a,2012-01-15,30,2',
         'a,2012-03-01,50,3',
         'a,2012-05-01,40,4',
-        'b,2012-02-01,20,3',
-        'b,2012-03-01,30,3',
-        'b,2012-04-01,60,2',
-        'b,2012-05-01,55,1'
+        'b,2012-02-01,20,10',
+        'b,2012-03-01,30,8',
+        'b,2012-04-01,110,7',
+        'b,2012-05-01,5,1'
       ].join('\n'), convertLine));
 
     let chart = linechart()
@@ -60,11 +60,13 @@ describe('Rendering', function() {
       .xScaleType('time')
       .xAxisTickFormat(d3.time.format('%m-%d'))
       .xMarkers([new Date(2012, 1, 15), new Date(2012, 2, 15)])
-      .yMarkers([40, 43])
+      .yMarkers([40, 73])
       .pMarkers([
-        {ts: new Date(2012, 0, 15), value: 30},
+        {ts: new Date(2012, 1, 15), value: 100},
         {ts: new Date(2012, 3, 1), value: 28}
       ])
+      .xAxisLabel('date')
+      .yAxisLabel('ch')
       .width(400)
       .height(150)
       .onMousemove((x, y) => {

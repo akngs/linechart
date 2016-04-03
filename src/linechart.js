@@ -32,9 +32,11 @@ const linechart = () => {
     yAxisTickFormat: null,
     xAxisTickInside: false,
     yAxisTickInside: false,
+    xAxisLabel: null,
+    yAxisLabel: null,
     width: 300,
     height: 150,
-    marginL: 24,
+    marginL: 32,
     marginR: 18,
     marginT: 12,
     marginB: 18,
@@ -77,6 +79,8 @@ const linechart = () => {
   let _rootSel;
   let _xAxisSel;
   let _yAxisSel;
+  let _xAxisLabelSel;
+  let _yAxisLabelSel;
   let _plotSel;
   let _pMarkersSel;
   let _xMarkersSel;
@@ -102,6 +106,12 @@ const linechart = () => {
 
     _yAxisSel = _rootSel.selectAll('.axis-y').data([null]);
     _yAxisSel.enter().append('g').attr('class', 'axis axis-y');
+
+    _xAxisLabelSel = _rootSel.selectAll('.axis-label-x').data([null]);
+    _xAxisLabelSel.enter().append('text').attr('class', 'axis-label axis-label-x');
+
+    _yAxisLabelSel = _rootSel.selectAll('.axis-label-y').data([null]);
+    _yAxisLabelSel.enter().append('text').attr('class', 'axis-label axis-label-y');
 
     _plotSel = _rootSel.selectAll('.plot').data([null]);
     _plotSel.enter().append('g').attr('class', 'plot');
@@ -171,22 +181,43 @@ const linechart = () => {
     let xAxis = d3.svg.axis()
       .scale(_xScale)
       .tickFormat(props.xAxisTickFormat)
-      .tickSize(props.xAxisTickInside ? -innerHeight - props.paddingB : 2)
+      .tickSize(props.xAxisTickInside ? -innerHeight - props.paddingB : 4)
       .ticks(5)
       .orient('bottom');
     let yAxis = d3.svg.axis()
       .scale(_yScale)
       .tickFormat(props.yAxisTickFormat)
-      .tickSize(props.yAxisTickInside ? -innerWidth - props.paddingL : 2)
+      .tickSize(props.yAxisTickInside ? -innerWidth - props.paddingL : 4)
       .ticks(5)
       .orient('left');
 
     _xAxisSel
       .attr('transform', `translate(0, ${innerHeight + props.paddingB})`)
-      .call(xAxis);
+      .call(xAxis)
+      .selectAll('text')
+        .attr('transform', 'translate(-1, -2)')
+        .style('text-anchor', 'end')
+        .style('alignment-baseline', 'after-edge');
     _yAxisSel
       .attr('transform', `translate(${-props.paddingL}, 0)`)
-      .call(yAxis);
+      .call(yAxis)
+      .selectAll('text')
+        .attr('transform', 'translate(6, 0)')
+        .style('text-anchor', 'end')
+        .style('alignment-baseline', 'hanging');
+
+    // Render axis labels
+    _xAxisLabelSel
+      .text(props.xAxisLabel)
+      .attr('transform', `translate(${innerWidth}, ${innerHeight + props.paddingB - 2})`)
+      .style('text-anchor', 'end')
+      .style('alignment-baseline', 'after-edge');
+
+    _yAxisLabelSel
+      .text(props.yAxisLabel)
+      .attr('transform', `translate(${-props.paddingL + 2}, 0)`)
+      .style('text-anchor', 'start')
+      .style('alignment-baseline', 'before-edge');
 
     // Render data area
     if (props.y0AreaAccessor && props.y1AreaAccessor) {

@@ -105,9 +105,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    yAxisTickFormat: null,
 	    xAxisTickInside: false,
 	    yAxisTickInside: false,
+	    xAxisLabel: null,
+	    yAxisLabel: null,
 	    width: 300,
 	    height: 150,
-	    marginL: 24,
+	    marginL: 32,
 	    marginR: 18,
 	    marginT: 12,
 	    marginB: 18,
@@ -155,6 +157,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var _rootSel = void 0;
 	  var _xAxisSel = void 0;
 	  var _yAxisSel = void 0;
+	  var _xAxisLabelSel = void 0;
+	  var _yAxisLabelSel = void 0;
 	  var _plotSel = void 0;
 	  var _pMarkersSel = void 0;
 	  var _xMarkersSel = void 0;
@@ -180,6 +184,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    _yAxisSel = _rootSel.selectAll('.axis-y').data([null]);
 	    _yAxisSel.enter().append('g').attr('class', 'axis axis-y');
+	
+	    _xAxisLabelSel = _rootSel.selectAll('.axis-label-x').data([null]);
+	    _xAxisLabelSel.enter().append('text').attr('class', 'axis-label axis-label-x');
+	
+	    _yAxisLabelSel = _rootSel.selectAll('.axis-label-y').data([null]);
+	    _yAxisLabelSel.enter().append('text').attr('class', 'axis-label axis-label-y');
 	
 	    _plotSel = _rootSel.selectAll('.plot').data([null]);
 	    _plotSel.enter().append('g').attr('class', 'plot');
@@ -224,11 +234,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _rootSel.attr('transform', 'translate(' + (props.marginL + props.paddingL) + ', ' + props.marginT + ')');
 	
 	    // Render axes
-	    var xAxis = _d3.default.svg.axis().scale(_xScale).tickFormat(props.xAxisTickFormat).tickSize(props.xAxisTickInside ? -innerHeight - props.paddingB : 2).ticks(5).orient('bottom');
-	    var yAxis = _d3.default.svg.axis().scale(_yScale).tickFormat(props.yAxisTickFormat).tickSize(props.yAxisTickInside ? -innerWidth - props.paddingL : 2).ticks(5).orient('left');
+	    var xAxis = _d3.default.svg.axis().scale(_xScale).tickFormat(props.xAxisTickFormat).tickSize(props.xAxisTickInside ? -innerHeight - props.paddingB : 4).ticks(5).orient('bottom');
+	    var yAxis = _d3.default.svg.axis().scale(_yScale).tickFormat(props.yAxisTickFormat).tickSize(props.yAxisTickInside ? -innerWidth - props.paddingL : 4).ticks(5).orient('left');
 	
-	    _xAxisSel.attr('transform', 'translate(0, ' + (innerHeight + props.paddingB) + ')').call(xAxis);
-	    _yAxisSel.attr('transform', 'translate(' + -props.paddingL + ', 0)').call(yAxis);
+	    _xAxisSel.attr('transform', 'translate(0, ' + (innerHeight + props.paddingB) + ')').call(xAxis).selectAll('text').attr('transform', 'translate(-1, -2)').style('text-anchor', 'end').style('alignment-baseline', 'after-edge');
+	    _yAxisSel.attr('transform', 'translate(' + -props.paddingL + ', 0)').call(yAxis).selectAll('text').attr('transform', 'translate(6, 0)').style('text-anchor', 'end').style('alignment-baseline', 'hanging');
+	
+	    // Render axis labels
+	    _xAxisLabelSel.text(props.xAxisLabel).attr('transform', 'translate(' + innerWidth + ', ' + (innerHeight + props.paddingB - 2) + ')').style('text-anchor', 'end').style('alignment-baseline', 'after-edge');
+	
+	    _yAxisLabelSel.text(props.yAxisLabel).attr('transform', 'translate(' + (-props.paddingL + 2) + ', 0)').style('text-anchor', 'start').style('alignment-baseline', 'before-edge');
 	
 	    // Render data area
 	    if (props.y0AreaAccessor && props.y1AreaAccessor) {
