@@ -77,6 +77,7 @@ describe('Rendering', function() {
       .yAccessor(d => d.value)
       .y0AreaAccessor(d => d.value - d.interval)
       .y1AreaAccessor(d => d.value + d.interval)
+      .yAxisTickValues([0,50,100])
       .xScaleType('time')
       .xAxisTickFormat(d3.time.format('%m-%d'))
       .xMarkers([new Date(2012, 1, 15), new Date(2012, 2, 15)])
