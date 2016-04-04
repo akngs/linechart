@@ -1,6 +1,6 @@
 {
   "name": "linechart",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "General purpose SVG line chart component",
   "main": "dist/linechart.js",
   "scripts": {
