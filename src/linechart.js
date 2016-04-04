@@ -32,6 +32,8 @@ const linechart = () => {
     yAxisTickFormat: null,
     xAxisTickInside: false,
     yAxisTickInside: false,
+    xAxisTickValues: null,
+    yAxisTickValues: 'domain',
     xAxisLabel: null,
     yAxisLabel: null,
     width: 300,
@@ -178,16 +180,27 @@ const linechart = () => {
         `translate(${props.marginL + props.paddingL}, ${props.marginT})`);
 
     // Render axes
+    let xAxisTickValues = props.xAxisTickValues;
+    if (xAxisTickValues === 'domain') {
+      xAxisTickValues = _xScale.domain();
+    }
     let xAxis = d3.svg.axis()
       .scale(_xScale)
       .tickFormat(props.xAxisTickFormat)
       .tickSize(props.xAxisTickInside ? -innerHeight - props.paddingB : 2)
+      .tickValues(xAxisTickValues)
       .ticks(5)
       .orient('bottom');
+
+    let yAxisTickValues = props.yAxisTickValues;
+    if (yAxisTickValues === 'domain') {
+      yAxisTickValues = _yScale.domain();
+    }
     let yAxis = d3.svg.axis()
       .scale(_yScale)
       .tickFormat(props.yAxisTickFormat)
       .tickSize(props.yAxisTickInside ? -innerWidth - props.paddingL : 2)
+      .tickValues(yAxisTickValues)
       .ticks(5)
       .orient('left');
 
