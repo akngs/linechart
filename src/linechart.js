@@ -26,6 +26,7 @@ const linechart = () => {
     xScaleType: 'linear',
     yScaleType: 'linear',
     interpolate: 'linear',
+    regularQuadrant: false,
 
     // Style
     xAxisTickFormat: null,
@@ -56,22 +57,22 @@ const linechart = () => {
   }
 
   // Event handlers
-  let mouseoverHandler = (x, y) => {};
+  let mouseoverHandler = (x, y, chart) => {};
   instance.onMouseover = function(value) {
     return (mouseoverHandler = value, instance);
   };
 
-  let mouseoutHandler = () => {};
+  let mouseoutHandler = (chart) => {};
   instance.onMouseout = function(value) {
     return (mouseoutHandler = value, instance);
   };
 
-  let mousemoveHandler = (x, y) => {};
+  let mousemoveHandler = (x, y, chart) => {};
   instance.onMousemove = function(value) {
     return (mousemoveHandler = value, instance);
   };
 
-  let clickHandler = (x, y) => {};
+  let clickHandler = (x, y, chart) => {};
   instance.onClick = function(value) {
     return (clickHandler = value, instance);
   };
@@ -165,6 +166,16 @@ const linechart = () => {
         props.pMarkers
       ))
       .rangeRound([props.height - props.marginT - props.marginB - props.paddingB, 0]);
+
+    if (props.regularQuadrant) {
+      let extentX = _xScale.domain();
+      let extentY = _yScale.domain();
+      let maxX = Math.max(Math.abs(extentX[0]), Math.abs(extentX[1]));
+      let maxY = Math.max(Math.abs(extentY[0]), Math.abs(extentY[1]));
+      let max = Math.max(maxX, maxY);
+      _xScale.domain([-max, max]);
+      _yScale.domain([-max, max]);
+    }
 
     let innerWidth = _xScale.range()[1];
     let innerHeight = _yScale.range()[0];
@@ -379,21 +390,21 @@ const linechart = () => {
 
   const _onMouseover = () => {
     let [x, y] = _mouseToDomain(d3.event.offsetX, d3.event.offsetY);
-    mouseoverHandler(x, y);
+    mouseoverHandler(x, y, instance);
   };
 
   const _onMouseout = () => {
-    mouseoutHandler();
+    mouseoutHandler(instance);
   };
 
   const _onMousemove = () => {
     let [x, y] = _mouseToDomain(d3.event.offsetX, d3.event.offsetY);
-    mousemoveHandler(x, y);
+    mousemoveHandler(x, y, instance);
   };
 
   const _onClick = () => {
     let [x, y] = _mouseToDomain(d3.event.offsetX, d3.event.offsetY);
-    clickHandler(x, y);
+    clickHandler(x, y, instance);
   };
 
   const _getExtent = (
@@ -457,6 +468,12 @@ const linechart = () => {
   };
 
   instance.update = _update;
+  instance.getXDomain = () => {
+    return _xScale.domain();
+  };
+  instance.getYDomain = () => {
+    return _yScale.domain();
+  };
 
   return instance;
 };
