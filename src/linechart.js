@@ -299,7 +299,9 @@ const linechart = () => {
     let pointSel = pointsSel.selectAll('.point').data(d => d.values);
 
     pointSel.enter().append('circle')
-      .attr('class', 'point');
+      .attr('class', 'point')
+      .attr('cx', xScaledAccessor)
+      .attr('cy', yScaledAccessor);
 
     pointSel.exit().remove();
 
@@ -317,6 +319,7 @@ const linechart = () => {
 
     pMarkerSel.enter().append('g')
       .attr('class', 'marker')
+      .attr('transform', (d, i) => `translate(${xScaledAccessor(d, i)}, ${yScaledAccessor(d, i)})`)
       .each(function() {
         let sel = d3.select(this);
         sel.append('line')
@@ -356,6 +359,9 @@ const linechart = () => {
 
     xMarkerSel.enter().append('line')
       .attr('class', 'marker')
+      .attr('x1', _xScale)
+      .attr('x2', _xScale)
+      .attr('y2', innerHeight + props.paddingB)
       .attr('stroke-width', 0.5);
 
     xMarkerSel.exit().remove();
@@ -372,6 +378,9 @@ const linechart = () => {
 
     yMarkerSel.enter().append('line')
       .attr('class', 'marker')
+      .attr('y1', _yScale)
+      .attr('y2', _yScale)
+      .attr('x2', innerWidth + props.paddingL)
       .attr('stroke-width', 0.5);
 
     yMarkerSel.exit().remove();
