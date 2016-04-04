@@ -206,9 +206,11 @@ const linechart = () => {
 
     _xAxisSel
       .attr('transform', `translate(0, ${innerHeight + props.paddingB})`)
+      .transition()
       .call(xAxis);
     _yAxisSel
       .attr('transform', `translate(${-props.paddingL}, 0)`)
+      .transition()
       .call(yAxis);
 
     // Render axis labels
@@ -247,6 +249,7 @@ const linechart = () => {
 
       areaSel
         .attr('fill', (d, i) => color(i))
+        .transition()
         .attr('d', d => area(d.values));
     }
 
@@ -269,6 +272,7 @@ const linechart = () => {
 
     lineSel
       .attr('stroke', (d, i) => color(i))
+      .transition()
       .attr('d', d => line(d.values));
 
     // Render data points
@@ -289,12 +293,13 @@ const linechart = () => {
     pointSel.exit().remove();
 
     pointSel
+      .attr('stroke', (d, i, j) => color(j))
+      .attr('fill', 'none')
+      .transition()
       .attr('cx', xScaledAccessor)
       .attr('cy', yScaledAccessor)
       .attr('r', 2)
-      .attr('stroke', (d, i, j) => color(j))
-      .attr('stroke-width', 1)
-      .attr('fill', 'none');
+      .attr('stroke-width', 1);
 
     // Render point markers
     let pMarkerSel = _pMarkersSel.selectAll('.marker').data(props.pMarkers);
@@ -316,6 +321,7 @@ const linechart = () => {
     pMarkerSel.exit().remove();
 
     pMarkerSel
+      .transition()
       .attr('transform', (d, i) => `translate(${xScaledAccessor(d, i)}, ${yScaledAccessor(d, i)})`);
 
     // Render x focus
@@ -344,6 +350,7 @@ const linechart = () => {
     xMarkerSel.exit().remove();
 
     xMarkerSel
+      .transition()
       .attr('x1', _xScale)
       .attr('x2', _xScale)
       .attr('y2', innerHeight + props.paddingB);
@@ -359,6 +366,7 @@ const linechart = () => {
     yMarkerSel.exit().remove();
 
     yMarkerSel
+      .transition()
       .attr('y1', _yScale)
       .attr('y2', _yScale)
       .attr('x2', innerWidth + props.paddingL);
