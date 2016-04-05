@@ -80,11 +80,11 @@ describe('Rendering', function() {
       .yAxisTickValues([0,50,100])
       .xScaleType('time')
       .xAxisTickFormat(d3.time.format('%m-%d'))
-      .xMarkers([new Date(2012, 1, 15), new Date(2012, 2, 15)])
+      .xMarkers([new Date(2012, 1, 15), new Date(2012, 2, 1)])
       .yMarkers([40, 73])
       .pMarkers([
-        {ts: new Date(2012, 1, 15), value: 100},
-        {ts: new Date(2012, 3, 1), value: 28}
+        {x: new Date(2012, 1, 15), y: 100, className: 'highlight'},
+        {x: new Date(2012, 3, 1), y: 28}
       ])
       .xAxisLabel('date')
       .yAxisLabel('ch')

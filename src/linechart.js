@@ -149,6 +149,7 @@ const linechart = () => {
     _xScale = new SCALE_TYPES[props.xScaleType]()
       .domain(_getExtent(
         props.data,
+        'x',
         props.xAccessor,
         null,
         null,
@@ -159,6 +160,7 @@ const linechart = () => {
     _yScale = new SCALE_TYPES[props.yScaleType]()
       .domain(_getExtent(
         props.data,
+        'y',
         props.yAccessor,
         props.y0AreaAccessor,
         props.y1AreaAccessor,
@@ -319,7 +321,7 @@ const linechart = () => {
 
     pMarkerSel.enter().append('g')
       .attr('class', 'marker')
-      .attr('transform', (d, i) => `translate(${xScaledAccessor(d, i)}, ${yScaledAccessor(d, i)})`)
+      .attr('transform', d => `translate(${_xScale(d.x)}, ${_yScale(d.y)})`)
       .each(function() {
         let sel = d3.select(this);
         sel.append('line')
@@ -335,8 +337,9 @@ const linechart = () => {
     pMarkerSel.exit().remove();
 
     pMarkerSel
+      .attr('class', d => `marker ${d.className || ''}`)
       .transition()
-      .attr('transform', (d, i) => `translate(${xScaledAccessor(d, i)}, ${yScaledAccessor(d, i)})`);
+      .attr('transform', d => `translate(${_xScale(d.x)}, ${_yScale(d.y)})`);
 
     // Render x focus
     _xFocusSel
@@ -354,7 +357,6 @@ const linechart = () => {
       .attr('y2', _yScale(props.yFocus));
 
     // Render x markers
-    _xMarkersSel.attr('transform', `translate(${-props.paddingL}, 0)`);
     let xMarkerSel = _xMarkersSel.selectAll('.marker').data(props.xMarkers);
 
     xMarkerSel.enter().append('line')
@@ -367,6 +369,7 @@ const linechart = () => {
     xMarkerSel.exit().remove();
 
     xMarkerSel
+      .attr('class', d => `marker ${d.className || ''}`)
       .transition()
       .attr('x1', _xScale)
       .attr('x2', _xScale)
@@ -386,6 +389,7 @@ const linechart = () => {
     yMarkerSel.exit().remove();
 
     yMarkerSel
+      .attr('class', d => `marker ${d.className || ''}`)
       .transition()
       .attr('y1', _yScale)
       .attr('y2', _yScale)
@@ -417,7 +421,7 @@ const linechart = () => {
   };
 
   const _getExtent = (
-    data, accessor, v0AreaAccessor, v1AreaAccessor, axisMarkers, pointMarkers
+    data, axis, accessor, v0AreaAccessor, v1AreaAccessor, axisMarkers, pointMarkers
   ) => {
     if (data.length + axisMarkers.length + pointMarkers.length === 0) {
       return [0, 1];
@@ -461,7 +465,7 @@ const linechart = () => {
 
     // Calculate extent for point markers
     for (let i = 0; i < pointMarkers.length; ++i) {
-      let value = accessor(pointMarkers[i], i);
+      let value = pointMarkers[i][axis];
       min = min < value ? min : value;
       max = max > value ? max : value;
     }

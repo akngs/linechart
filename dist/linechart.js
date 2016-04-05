@@ -99,12 +99,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	    xScaleType: 'linear',
 	    yScaleType: 'linear',
 	    interpolate: 'linear',
+	    regularQuadrant: false,
 	
 	    // Style
 	    xAxisTickFormat: null,
 	    yAxisTickFormat: null,
 	    xAxisTickInside: false,
 	    yAxisTickInside: false,
+	    xAxisTickValues: null,
+	    yAxisTickValues: 'domain',
 	    xAxisLabel: null,
 	    yAxisLabel: null,
 	    width: 300,
@@ -132,22 +135,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  // Event handlers
-	  var mouseoverHandler = function mouseoverHandler(x, y) {};
+	  var mouseoverHandler = function mouseoverHandler(x, y, chart) {};
 	  instance.onMouseover = function (value) {
 	    return mouseoverHandler = value, instance;
 	  };
 	
-	  var mouseoutHandler = function mouseoutHandler() {};
+	  var mouseoutHandler = function mouseoutHandler(chart) {};
 	  instance.onMouseout = function (value) {
 	    return mouseoutHandler = value, instance;
 	  };
 	
-	  var mousemoveHandler = function mousemoveHandler(x, y) {};
+	  var mousemoveHandler = function mousemoveHandler(x, y, chart) {};
 	  instance.onMousemove = function (value) {
 	    return mousemoveHandler = value, instance;
 	  };
 	
-	  var clickHandler = function clickHandler(x, y) {};
+	  var clickHandler = function clickHandler(x, y, chart) {};
 	  instance.onClick = function (value) {
 	    return clickHandler = value, instance;
 	  };
@@ -215,8 +218,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  var _update = function _update() {
 	    // Update scales
-	    _xScale = new SCALE_TYPES[props.xScaleType]().domain(_getExtent(props.data, props.xAccessor, null, null, props.xMarkers, props.pMarkers)).rangeRound([0, props.width - props.marginL - props.marginR - props.paddingL]);
-	    _yScale = new SCALE_TYPES[props.yScaleType]().domain(_getExtent(props.data, props.yAccessor, props.y0AreaAccessor, props.y1AreaAccessor, props.yMarkers, props.pMarkers)).rangeRound([props.height - props.marginT - props.marginB - props.paddingB, 0]);
+	    _xScale = new SCALE_TYPES[props.xScaleType]().domain(_getExtent(props.data, 'x', props.xAccessor, null, null, props.xMarkers, props.pMarkers)).rangeRound([0, props.width - props.marginL - props.marginR - props.paddingL]);
+	    _yScale = new SCALE_TYPES[props.yScaleType]().domain(_getExtent(props.data, 'y', props.yAccessor, props.y0AreaAccessor, props.y1AreaAccessor, props.yMarkers, props.pMarkers)).rangeRound([props.height - props.marginT - props.marginB - props.paddingB, 0]);
+	
+	    if (props.regularQuadrant) {
+	      var extentX = _xScale.domain();
+	      var extentY = _yScale.domain();
+	      var maxX = Math.max(Math.abs(extentX[0]), Math.abs(extentX[1]));
+	      var maxY = Math.max(Math.abs(extentY[0]), Math.abs(extentY[1]));
+	      var max = Math.max(maxX, maxY);
+	      _xScale.domain([-max, max]);
+	      _yScale.domain([-max, max]);
+	    }
 	
 	    var innerWidth = _xScale.range()[1];
 	    var innerHeight = _yScale.range()[0];
@@ -234,11 +247,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _rootSel.attr('transform', 'translate(' + (props.marginL + props.paddingL) + ', ' + props.marginT + ')');
 	
 	    // Render axes
-	    var xAxis = _d3.default.svg.axis().scale(_xScale).tickFormat(props.xAxisTickFormat).tickSize(props.xAxisTickInside ? -innerHeight - props.paddingB : 4).ticks(5).orient('bottom');
-	    var yAxis = _d3.default.svg.axis().scale(_yScale).tickFormat(props.yAxisTickFormat).tickSize(props.yAxisTickInside ? -innerWidth - props.paddingL : 4).ticks(5).orient('left');
+	    var xAxisTickValues = props.xAxisTickValues;
+	    if (xAxisTickValues === 'domain') {
+	      xAxisTickValues = _xScale.domain();
+	    }
+	    var xAxis = _d3.default.svg.axis().scale(_xScale).tickFormat(props.xAxisTickFormat).tickSize(props.xAxisTickInside ? -innerHeight - props.paddingB : 2).tickValues(xAxisTickValues).ticks(5).orient('bottom');
 	
-	    _xAxisSel.attr('transform', 'translate(0, ' + (innerHeight + props.paddingB) + ')').call(xAxis).selectAll('text').attr('transform', 'translate(-1, -2)').style('text-anchor', 'end').style('alignment-baseline', 'after-edge');
-	    _yAxisSel.attr('transform', 'translate(' + -props.paddingL + ', 0)').call(yAxis).selectAll('text').attr('transform', 'translate(6, 0)').style('text-anchor', 'end').style('alignment-baseline', 'hanging');
+	    var yAxisTickValues = props.yAxisTickValues;
+	    if (yAxisTickValues === 'domain') {
+	      yAxisTickValues = _yScale.domain();
+	    }
+	    var yAxis = _d3.default.svg.axis().scale(_yScale).tickFormat(props.yAxisTickFormat).tickSize(props.yAxisTickInside ? -innerWidth - props.paddingL : 2).tickValues(yAxisTickValues).ticks(5).orient('left');
+	
+	    _xAxisSel.attr('transform', 'translate(0, ' + (innerHeight + props.paddingB) + ')').transition().call(xAxis);
+	    _yAxisSel.attr('transform', 'translate(' + -props.paddingL + ', 0)').transition().call(yAxis);
 	
 	    // Render axis labels
 	    _xAxisLabelSel.text(props.xAxisLabel).attr('transform', 'translate(' + innerWidth + ', ' + (innerHeight + props.paddingB - 2) + ')').style('text-anchor', 'end').style('alignment-baseline', 'after-edge');
@@ -266,7 +288,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        areaSel.attr('fill', function (d, i) {
 	          return color(i);
-	        }).attr('d', function (d) {
+	        }).transition().attr('d', function (d) {
 	          return area(d.values);
 	        });
 	      })();
@@ -285,7 +307,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    lineSel.attr('stroke', function (d, i) {
 	      return color(i);
-	    }).attr('d', function (d) {
+	    }).transition().attr('d', function (d) {
 	      return line(d.values);
 	    });
 	
@@ -302,18 +324,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return d.values;
 	    });
 	
-	    pointSel.enter().append('circle').attr('class', 'point');
+	    pointSel.enter().append('circle').attr('class', 'point').attr('cx', xScaledAccessor).attr('cy', yScaledAccessor);
 	
 	    pointSel.exit().remove();
 	
-	    pointSel.attr('cx', xScaledAccessor).attr('cy', yScaledAccessor).attr('r', 2).attr('stroke', function (d, i, j) {
+	    pointSel.attr('stroke', function (d, i, j) {
 	      return color(j);
-	    }).attr('stroke-width', 1).attr('fill', 'none');
+	    }).attr('fill', 'none').transition().attr('cx', xScaledAccessor).attr('cy', yScaledAccessor).attr('r', 2).attr('stroke-width', 1);
 	
 	    // Render point markers
 	    var pMarkerSel = _pMarkersSel.selectAll('.marker').data(props.pMarkers);
 	
-	    pMarkerSel.enter().append('g').attr('class', 'marker').each(function () {
+	    pMarkerSel.enter().append('g').attr('class', 'marker').attr('transform', function (d) {
+	      return 'translate(' + _xScale(d.x) + ', ' + _yScale(d.y) + ')';
+	    }).each(function () {
 	      var sel = _d3.default.select(this);
 	      sel.append('line').attr('y1', -8).attr('y2', 8).attr('stroke-width', 0.5);
 	      sel.append('line').attr('x1', -8).attr('x2', 8).attr('stroke-width', 0.5);
@@ -321,8 +345,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    pMarkerSel.exit().remove();
 	
-	    pMarkerSel.attr('transform', function (d) {
-	      return 'translate(' + xScaledAccessor(d) + ', ' + yScaledAccessor(d) + ')';
+	    pMarkerSel.attr('class', function (d) {
+	      return 'marker ' + (d.className || '');
+	    }).transition().attr('transform', function (d) {
+	      return 'translate(' + _xScale(d.x) + ', ' + _yScale(d.y) + ')';
 	    });
 	
 	    // Render x focus
@@ -333,24 +359,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _yFocusSel.attr('stroke-width', props.yFocus === null ? 0 : 0.5).attr('x2', innerWidth + props.paddingL).attr('y1', _yScale(props.yFocus)).attr('y2', _yScale(props.yFocus));
 	
 	    // Render x markers
-	    _xMarkersSel.attr('transform', 'translate(' + -props.paddingL + ', 0)');
 	    var xMarkerSel = _xMarkersSel.selectAll('.marker').data(props.xMarkers);
 	
-	    xMarkerSel.enter().append('line').attr('class', 'marker').attr('stroke-width', 0.5);
+	    xMarkerSel.enter().append('line').attr('class', 'marker').attr('x1', _xScale).attr('x2', _xScale).attr('y2', innerHeight + props.paddingB).attr('stroke-width', 0.5);
 	
 	    xMarkerSel.exit().remove();
 	
-	    xMarkerSel.attr('x1', _xScale).attr('x2', _xScale).attr('y2', innerHeight + props.paddingB);
+	    xMarkerSel.attr('class', function (d) {
+	      return 'marker ' + (d.className || '');
+	    }).transition().attr('x1', _xScale).attr('x2', _xScale).attr('y2', innerHeight + props.paddingB);
 	
 	    // Render y markers
 	    _yMarkersSel.attr('transform', 'translate(' + -props.paddingL + ', 0)');
 	    var yMarkerSel = _yMarkersSel.selectAll('.marker').data(props.yMarkers);
 	
-	    yMarkerSel.enter().append('line').attr('class', 'marker').attr('stroke-width', 0.5);
+	    yMarkerSel.enter().append('line').attr('class', 'marker').attr('y1', _yScale).attr('y2', _yScale).attr('x2', innerWidth + props.paddingL).attr('stroke-width', 0.5);
 	
 	    yMarkerSel.exit().remove();
 	
-	    yMarkerSel.attr('y1', _yScale).attr('y2', _yScale).attr('x2', innerWidth + props.paddingL);
+	    yMarkerSel.attr('class', function (d) {
+	      return 'marker ' + (d.className || '');
+	    }).transition().attr('y1', _yScale).attr('y2', _yScale).attr('x2', innerWidth + props.paddingL);
 	
 	    // Resize overlay
 	    _overlaySel.attr('width', innerWidth).attr('height', innerHeight);
@@ -364,11 +393,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var x = _mouseToDomain3[0];
 	    var y = _mouseToDomain3[1];
 	
-	    mouseoverHandler(x, y);
+	    mouseoverHandler(x, y, instance);
 	  };
 	
 	  var _onMouseout = function _onMouseout() {
-	    mouseoutHandler();
+	    mouseoutHandler(instance);
 	  };
 	
 	  var _onMousemove = function _onMousemove() {
@@ -379,7 +408,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var x = _mouseToDomain5[0];
 	    var y = _mouseToDomain5[1];
 	
-	    mousemoveHandler(x, y);
+	    mousemoveHandler(x, y, instance);
 	  };
 	
 	  var _onClick = function _onClick() {
@@ -390,10 +419,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var x = _mouseToDomain7[0];
 	    var y = _mouseToDomain7[1];
 	
-	    clickHandler(x, y);
+	    clickHandler(x, y, instance);
 	  };
 	
-	  var _getExtent = function _getExtent(data, accessor, v0AreaAccessor, v1AreaAccessor, axisMarkers, pointMarkers) {
+	  var _getExtent = function _getExtent(data, axis, accessor, v0AreaAccessor, v1AreaAccessor, axisMarkers, pointMarkers) {
 	    if (data.length + axisMarkers.length + pointMarkers.length === 0) {
 	      return [0, 1];
 	    }
@@ -436,7 +465,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    // Calculate extent for point markers
 	    for (var _i3 = 0; _i3 < pointMarkers.length; ++_i3) {
-	      var _value2 = accessor(pointMarkers[_i3], _i3);
+	      var _value2 = pointMarkers[_i3][axis];
 	      min = min < _value2 ? min : _value2;
 	      max = max > _value2 ? max : _value2;
 	    }
@@ -449,6 +478,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 	
 	  instance.update = _update;
+	  instance.getXDomain = function () {
+	    return _xScale.domain();
+	  };
+	  instance.getYDomain = function () {
+	    return _yScale.domain();
+	  };
 	
 	  return instance;
 	};
