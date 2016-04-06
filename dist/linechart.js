@@ -102,6 +102,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    regularQuadrant: false,
 	
 	    // Style
+	    transitionDuration: 500,
 	    xAxisTickFormat: null,
 	    yAxisTickFormat: null,
 	    xAxisTickInside: false,
@@ -259,8 +260,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    var yAxis = _d3.default.svg.axis().scale(_yScale).tickFormat(props.yAxisTickFormat).tickSize(props.yAxisTickInside ? -innerWidth - props.paddingL : 2).tickValues(yAxisTickValues).ticks(5).orient('left');
 	
-	    _xAxisSel.attr('transform', 'translate(0, ' + (innerHeight + props.paddingB) + ')').transition().call(xAxis);
-	    _yAxisSel.attr('transform', 'translate(' + -props.paddingL + ', 0)').transition().call(yAxis);
+	    _xAxisSel.attr('transform', 'translate(0, ' + (innerHeight + props.paddingB) + ')').transition().duration(props.transitionDuration).call(xAxis);
+	    _yAxisSel.attr('transform', 'translate(' + -props.paddingL + ', 0)').transition().duration(props.transitionDuration).call(yAxis);
 	
 	    // Render axis labels
 	    _xAxisLabelSel.text(props.xAxisLabel).attr('transform', 'translate(' + innerWidth + ', ' + (innerHeight + props.paddingB - 2) + ')').style('text-anchor', 'end').style('alignment-baseline', 'after-edge');
@@ -288,7 +289,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        areaSel.attr('fill', function (d, i) {
 	          return color(i);
-	        }).transition().attr('d', function (d) {
+	        }).transition().duration(props.transitionDuration).attr('d', function (d) {
 	          return area(d.values);
 	        });
 	      })();
@@ -307,7 +308,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    lineSel.attr('stroke', function (d, i) {
 	      return color(i);
-	    }).transition().attr('d', function (d) {
+	    }).transition().duration(props.transitionDuration).attr('d', function (d) {
 	      return line(d.values);
 	    });
 	
@@ -330,7 +331,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    pointSel.attr('stroke', function (d, i, j) {
 	      return color(j);
-	    }).attr('fill', 'none').transition().attr('cx', xScaledAccessor).attr('cy', yScaledAccessor).attr('r', 2).attr('stroke-width', 1);
+	    }).attr('fill', 'none').transition().duration(props.transitionDuration).attr('cx', xScaledAccessor).attr('cy', yScaledAccessor).attr('r', 2).attr('stroke-width', 1);
 	
 	    // Render point markers
 	    var pMarkerSel = _pMarkersSel.selectAll('.marker').data(props.pMarkers);
@@ -347,7 +348,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    pMarkerSel.attr('class', function (d) {
 	      return 'marker ' + (d.className || '');
-	    }).transition().attr('transform', function (d) {
+	    }).transition().duration(props.transitionDuration).attr('transform', function (d) {
 	      return 'translate(' + _xScale(d.x) + ', ' + _yScale(d.y) + ')';
 	    });
 	
@@ -367,7 +368,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    xMarkerSel.attr('class', function (d) {
 	      return 'marker ' + (d.className || '');
-	    }).transition().attr('x1', _xScale).attr('x2', _xScale).attr('y2', innerHeight + props.paddingB);
+	    }).transition().duration(props.transitionDuration).attr('x1', _xScale).attr('x2', _xScale).attr('y2', innerHeight + props.paddingB);
 	
 	    // Render y markers
 	    _yMarkersSel.attr('transform', 'translate(' + -props.paddingL + ', 0)');
@@ -379,7 +380,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    yMarkerSel.attr('class', function (d) {
 	      return 'marker ' + (d.className || '');
-	    }).transition().attr('y1', _yScale).attr('y2', _yScale).attr('x2', innerWidth + props.paddingL);
+	    }).transition().duration(props.transitionDuration).attr('y1', _yScale).attr('y2', _yScale).attr('x2', innerWidth + props.paddingL);
 	
 	    // Resize overlay
 	    _overlaySel.attr('width', innerWidth).attr('height', innerHeight);

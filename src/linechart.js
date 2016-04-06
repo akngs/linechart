@@ -29,6 +29,7 @@ const linechart = () => {
     regularQuadrant: false,
 
     // Style
+    transitionDuration: 500,
     xAxisTickFormat: null,
     yAxisTickFormat: null,
     xAxisTickInside: false,
@@ -220,10 +221,12 @@ const linechart = () => {
     _xAxisSel
       .attr('transform', `translate(0, ${innerHeight + props.paddingB})`)
       .transition()
+      .duration(props.transitionDuration)
       .call(xAxis);
     _yAxisSel
       .attr('transform', `translate(${-props.paddingL}, 0)`)
       .transition()
+      .duration(props.transitionDuration)
       .call(yAxis);
 
     // Render axis labels
@@ -263,6 +266,7 @@ const linechart = () => {
       areaSel
         .attr('fill', (d, i) => color(i))
         .transition()
+        .duration(props.transitionDuration)
         .attr('d', d => area(d.values));
     }
 
@@ -286,6 +290,7 @@ const linechart = () => {
     lineSel
       .attr('stroke', (d, i) => color(i))
       .transition()
+      .duration(props.transitionDuration)
       .attr('d', d => line(d.values));
 
     // Render data points
@@ -311,6 +316,7 @@ const linechart = () => {
       .attr('stroke', (d, i, j) => color(j))
       .attr('fill', 'none')
       .transition()
+      .duration(props.transitionDuration)
       .attr('cx', xScaledAccessor)
       .attr('cy', yScaledAccessor)
       .attr('r', 2)
@@ -339,6 +345,7 @@ const linechart = () => {
     pMarkerSel
       .attr('class', d => `marker ${d.className || ''}`)
       .transition()
+      .duration(props.transitionDuration)
       .attr('transform', d => `translate(${_xScale(d.x)}, ${_yScale(d.y)})`);
 
     // Render x focus
@@ -371,6 +378,7 @@ const linechart = () => {
     xMarkerSel
       .attr('class', d => `marker ${d.className || ''}`)
       .transition()
+      .duration(props.transitionDuration)
       .attr('x1', _xScale)
       .attr('x2', _xScale)
       .attr('y2', innerHeight + props.paddingB);
@@ -391,6 +399,7 @@ const linechart = () => {
     yMarkerSel
       .attr('class', d => `marker ${d.className || ''}`)
       .transition()
+      .duration(props.transitionDuration)
       .attr('y1', _yScale)
       .attr('y2', _yScale)
       .attr('x2', innerWidth + props.paddingL);
